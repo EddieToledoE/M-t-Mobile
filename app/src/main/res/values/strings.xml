@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Mirandaytoledo</string>
+    <string name="miranda_y_toledo">Miranda &amp; Toledo</string>
+    <string name="login_username_textfield">Username</string>
+    <string name="login_password_textfield">Password</string>
+    <string name="login_accept_button">Log In</string>
+    <string name="error_request_timeout">The request time out.</string>
+    <string name="error_many_request">Too many request in a short period.</string>
+    <string name="error_no_internet">There is not internet connection.</string>
+    <string name="error_server_error">Internal Server Error, please tyr again later.</string>
+    <string name="error_serialization">An error occurred on the serialization of the data.</string>
+    <string name="error_unknown">Error unknown, please check the logs.</string>
+    <string name="error_incorrect_credential">Incorrect Credentials, try again.</string>
+    <string name="top_bar_title">Photographic Studio</string>
+
+
+</resources>
