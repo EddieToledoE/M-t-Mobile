@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -157,7 +159,7 @@ fun LoginScreen(
                                 modifier = modifier
                             ) {
                                 Icon(
-                                    imageVector = if (passwordVisibility) Icons.Default.Face else Icons.Default.Close,
+                                    imageVector = if (passwordVisibility) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = null
                                 )
                             }

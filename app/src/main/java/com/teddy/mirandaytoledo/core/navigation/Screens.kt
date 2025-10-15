@@ -7,3 +7,25 @@ object Login
 
 @Serializable
 object Home
+
+@Serializable
+object Register
+
+@Serializable
+object Search
+
+@Serializable
+object Status
+
+@Serializable
+object Finance
+
+@Serializable
+object Count
+
+@Serializable
+object Settings
+
+
+
+

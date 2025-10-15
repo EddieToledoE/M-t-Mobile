@@ -17,9 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MirandaytoledoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NavigationWrapper(modifier = Modifier.padding(innerPadding))
-                }
+                NavigationWrapper(modifier = Modifier)
             }
         }
     }
