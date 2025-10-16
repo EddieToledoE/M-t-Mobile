@@ -10,18 +10,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.teddy.mirandaytoledo.core.navigation.Navigator
 import com.teddy.mirandaytoledo.home.presentation.components.TopBar
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.get
+import org.koin.compose.koinInject
 
 @Composable
 fun MainScaffold(
-    navController: NavController,
     onLogout: () -> Unit,
-    content: @Composable () -> Unit
+    navigator: Navigator = koinInject(),
+    content: @Composable () -> Unit,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -32,16 +34,16 @@ fun MainScaffold(
                 },
                 onSelectedItem = { destination ->
                     scope.launch { drawerState.close() }
-                    navController.navigate(destination)
-                })
+                    navigator.navigateTo(destination)
+                }
+            )
         }
     ) {
         Scaffold(
             topBar = { TopBar(onIconClick = { scope.launch { drawerState.open() } }) },
             floatingActionButton = {},
             bottomBar = {},
-
-            ) { paddingValues ->
+        ) { paddingValues ->
             Box(Modifier.padding(paddingValues)) {
                 content()
             }

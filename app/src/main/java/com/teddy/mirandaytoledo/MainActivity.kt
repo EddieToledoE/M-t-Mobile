@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MirandaytoledoTheme {
-                NavigationWrapper(modifier = Modifier)
+                NavigationWrapper()
             }
         }
     }

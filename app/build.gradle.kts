@@ -51,6 +51,7 @@ dependencies {
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     debugImplementation(libs.bundles.compose.debug)
 
 
