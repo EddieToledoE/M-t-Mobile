@@ -23,6 +23,26 @@
     <string name="navdraw_title_count">Count</string>
     <string name="navdraw_title_settings">Settings</string>
     <string name="navdraw_title_logout">Logout</string>
+    <string name="SchoolSelector_title_textfield">Select School</string>
+    <string name="EducationalLevel_title_textfield">Select Educational Level</string>
+    <string name="register_name_textfield">Student\'s names</string>
+    <string name="register_name_placeholder">Jose Luis</string>
+    <string name="register_flastname_textfield">Lastname 1</string>
+    <string name="register_flastname_placeholder">Toledo</string>
+    <string name="register_slastname_textfield">Lastname 2</string>
+    <string name="register_slastname_placeholder">Miranda</string>
+    <string name="register_gradeandgroup_text">Grade and Group</string>
+    <string name="register_grade_text">Grade</string>
+    <string name="register_group_text">Group</string>
+    <string name="register_tutor_textfield">Tutor\'s names</string>
+    <string name="register_tutor_placeholder">Bartolo</string>
+    <string name="register_tflastname_placeholder">Miranda</string>
+    <string name="register_tslastname_placeholder">Matias</string>
+    <string name="register_phone_text">Phone Number</string>
+    <string name="register_phone_placeholder">9660001212</string>
+    <string name="dateSelector_title_textfield">Register Day</string>
+    <string name="accept">Accept</string>
+    <string name="cancel">Cancel</string>
 
 
 </resources>

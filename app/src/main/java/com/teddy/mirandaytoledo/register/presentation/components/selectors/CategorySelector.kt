@@ -1,8 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.teddy.mirandaytoledo.register.presentation.components
+package com.teddy.mirandaytoledo.register.presentation.components.selectors
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -17,21 +19,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.teddy.mirandaytoledo.register.presentation.components.text.ArgumentText
 
 @Composable
 fun CategorySelector(
     modifier: Modifier = Modifier,
     categories: List<String>,
-    onCategorySelected: (String) -> Unit
+    onCategorySelected: (String) -> Unit,
+    @StringRes label: Int,
+    showArgumentText: Boolean = true
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var selectedCategory by rememberSaveable { mutableStateOf("") }
 
+    if (showArgumentText) {
+        ArgumentText(
+            label = label
+        )
+    }
+    
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
@@ -40,7 +54,7 @@ fun CategorySelector(
             value = selectedCategory,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Seleccionar categoría") },
+            label = { Text(stringResource(label)) },
             trailingIcon = {
                 Icon(
                     imageVector = if (!expanded) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
@@ -51,6 +65,7 @@ fun CategorySelector(
             modifier = modifier
                 .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth()
+                .padding(horizontal = 10.dp)
 
         )
         ExposedDropdownMenu(

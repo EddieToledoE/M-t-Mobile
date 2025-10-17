@@ -2,10 +2,15 @@
   <dictionary name="project">
     <words>
       <w>exitoso</w>
+      <w>flastname</w>
+      <w>gradeandgroup</w>
       <w>incorrectos</w>
       <w>mirandaytoledo</w>
       <w>navdraw</w>
+      <w>slastname</w>
       <w>textfield</w>
+      <w>tflastname</w>
+      <w>tslastname</w>
       <w>usuario</w>
     </words>
   </dictionary>

@@ -23,13 +23,13 @@ fun NavigationWrapper() {
 
         authGraph(
             onLoginSuccess = {
-                navigator.navigateAndClear(Home, Login)
+                navigator.navigateAndClear(route = Home, popUpTo = Login)
             }
         )
 
         mainGraph(
             onLogout = {
-                navigator.navigateAndClear(Login, Home)
+                navigator.navigateAndClear(route = Login, popUpTo = Home)
             }
         )
 
