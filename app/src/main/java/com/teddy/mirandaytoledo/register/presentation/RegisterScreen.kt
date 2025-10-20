@@ -23,12 +23,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewDynamicColors
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.teddy.mirandaytoledo.core.navigation.Navigator
 import com.teddy.mirandaytoledo.core.presentation.components.MainScaffold
 import com.teddy.mirandaytoledo.register.presentation.components.RegisterStatus
+import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterBundleData
+import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterBundleDataHeader
 import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterPersonalData
 import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterPersonalDataHeader
 import com.teddy.mirandaytoledo.ui.theme.MirandaytoledoTheme
@@ -48,14 +51,18 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.Start
 
     ) {
-        RegisterStatus()
-        RegisterPersonalDataHeader()
+        RegisterStatus() //Este va siempre
+        //Aqui abra otros 2 Header que dependeran de el paso actual
+        //RegisterPersonalDataHeader()
+        RegisterBundleDataHeader()
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            RegisterPersonalData()
+            //Aqui abra otros 2 contents que dependeran de el paso actual
+            //RegisterPersonalData()
+            RegisterBundleData()
         }
         Row(
             modifier = modifier
@@ -64,8 +71,18 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
                 .padding(vertical = 3.dp, horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            OutlinedButton(onClick = {}, modifier = modifier.weight(0.4f).padding(horizontal = 4.dp)) { Text("Back") }
-            Button(onClick = {}, modifier = modifier.weight(0.6f).padding(horizontal = 4.dp)) { Text("Next") }
+            OutlinedButton(
+                onClick = {},
+                modifier = modifier
+                    .weight(0.4f)
+                    .padding(horizontal = 4.dp)
+            ) { Text("Back") }
+            Button(
+                onClick = {},
+                modifier = modifier
+                    .weight(0.6f)
+                    .padding(horizontal = 4.dp)
+            ) { Text("Next") }
 
         }
 

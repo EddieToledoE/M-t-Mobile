@@ -43,6 +43,11 @@
     <string name="dateSelector_title_textfield">Register Day</string>
     <string name="accept">Accept</string>
     <string name="cancel">Cancel</string>
+    <string name="register_personaldata_header">School\'s Information</string>
+    <string name="register_personaldata_subtitle">Don\'t leave any blank spaces</string>
+    <string name="register_bundledata_header">Bundle\'s Information</string>
+    <string name="register_gown_textfield">Gown Photo Id</string>
+    <string name="register_gown_placeholder">666</string>
 
 
 </resources>

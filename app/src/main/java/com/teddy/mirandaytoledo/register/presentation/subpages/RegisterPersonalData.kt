@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +33,7 @@ fun RegisterPersonalData(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .padding(bottom = 12.dp)
-            
+
     ) {
         EducationalLevelSelector()
         SchoolSelector()
@@ -103,13 +104,13 @@ fun RegisterPersonalData(modifier: Modifier = Modifier) {
 fun RegisterPersonalDataHeader(modifier: Modifier = Modifier) {
     Text(
         modifier = modifier.padding(all = 8.dp),
-        text = "Informacion de la escuela",
+        text = stringResource(R.string.register_personaldata_header),
         fontSize = 24.sp,
         fontWeight = FontWeight.Medium,
     )
     Text(
         modifier = modifier.padding(horizontal = 8.dp),
-        text = "Todos los campos son obligatorios",
+        text = stringResource(R.string.register_personaldata_subtitle),
         color = MaterialTheme.colorScheme.secondary
     )
 }
