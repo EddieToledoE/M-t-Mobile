@@ -2,6 +2,7 @@ package com.teddy.mirandaytoledo.register.presentation.subpages
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,6 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.teddy.mirandaytoledo.R
+import com.teddy.mirandaytoledo.register.presentation.components.checkboxes.DigitalFilterCheckBox
+import com.teddy.mirandaytoledo.register.presentation.components.selectors.BundleTypeSelector
+import com.teddy.mirandaytoledo.register.presentation.components.selectors.CategorySelector
 import com.teddy.mirandaytoledo.register.presentation.components.textfields.CategoryTextField
 
 @Composable
@@ -21,6 +25,8 @@ fun RegisterBundleData(modifier: Modifier = Modifier) {
             label = R.string.register_gown_textfield,
             placeHolder = R.string.register_gown_placeholder
         )
+        DigitalFilterCheckBox()
+        BundleTypeSelector()
     }
 }
 

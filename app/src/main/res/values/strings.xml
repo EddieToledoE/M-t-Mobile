@@ -48,6 +48,20 @@
     <string name="register_bundledata_header">Bundle\'s Information</string>
     <string name="register_gown_textfield">Gown Photo Id</string>
     <string name="register_gown_placeholder">666</string>
+    <string name="register_filter_checkbox">Digital Filters</string>
+    <string name="bundleSelector_type_title">Type</string>
+    <string name="bundleSelector_surface_title">Surface finish</string>
+    <string name="bundleSelector_model_title">Model</string>
+    <string name="bundleSelector_size_title">Size</string>
+    <string name="bundleSelector_color_title">Color</string>
+    <string name="register_paymentdata_header">Payment Information</string>
+    <string name="register_paymentdata_subtitle">If necessary add the additional changes</string>
+    <string name="register_observations_textfield">Observations</string>
+    <string name="register_observations_placeholder">The customer wants to have an additional 6x8 photo</string>
+    <string name="register_downpayment_textfield">Down Payment</string>
+    <string name="register_downpayment_placeholder">-</string>
+    <string name="register_additional_textfield">Additional Cost</string>
+    <string name="register_additional_placeholder">-</string>
 
 
 </resources>

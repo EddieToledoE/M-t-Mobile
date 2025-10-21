@@ -32,6 +32,8 @@ import com.teddy.mirandaytoledo.core.presentation.components.MainScaffold
 import com.teddy.mirandaytoledo.register.presentation.components.RegisterStatus
 import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterBundleData
 import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterBundleDataHeader
+import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterPaymentData
+import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterPaymentDataHeader
 import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterPersonalData
 import com.teddy.mirandaytoledo.register.presentation.subpages.RegisterPersonalDataHeader
 import com.teddy.mirandaytoledo.ui.theme.MirandaytoledoTheme
@@ -54,7 +56,8 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
         RegisterStatus() //Este va siempre
         //Aqui abra otros 2 Header que dependeran de el paso actual
         //RegisterPersonalDataHeader()
-        RegisterBundleDataHeader()
+        //RegisterBundleDataHeader()
+        RegisterPaymentDataHeader()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -62,7 +65,8 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
         ) {
             //Aqui abra otros 2 contents que dependeran de el paso actual
             //RegisterPersonalData()
-            RegisterBundleData()
+            //RegisterBundleData()
+            RegisterPaymentData()
         }
         Row(
             modifier = modifier
@@ -83,7 +87,6 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
                     .weight(0.6f)
                     .padding(horizontal = 4.dp)
             ) { Text("Next") }
-
         }
 
 
