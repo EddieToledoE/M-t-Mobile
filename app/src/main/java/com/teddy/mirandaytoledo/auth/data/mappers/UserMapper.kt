@@ -4,5 +4,5 @@ import com.teddy.mirandaytoledo.auth.domain.User
 import com.teddy.mirandaytoledo.auth.data.dto.UserDto
 
 fun User.toDto(): UserDto{
-    return UserDto(usuario = username, contra = password)
+    return UserDto(username = username, password = password)
 }

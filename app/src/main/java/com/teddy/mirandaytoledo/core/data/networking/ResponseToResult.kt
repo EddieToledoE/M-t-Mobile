@@ -5,6 +5,7 @@ import com.teddy.mirandaytoledo.core.domain.util.Result
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import kotlinx.serialization.SerializationException
 
 suspend inline fun <reified T> responseToResult(
     response: HttpResponse,
@@ -12,16 +13,17 @@ suspend inline fun <reified T> responseToResult(
     return when (response.status.value) {
         in 200..299 -> {
             try {
-                Result.Success(data = response.body<T>())
+                Result.Success(response.body<T>())
             } catch (e: NoTransformationFoundException) {
-                Result.Error(error = NetworkError.SERIALIZATION)
+                Result.Error(NetworkError.SERIALIZATION)
+            } catch (e: SerializationException) {
+                Result.Error(NetworkError.SERIALIZATION)
             }
         }
-
-        401 -> Result.Error(error = NetworkError.INCORRECT_CREDENTIALS)
-        408 -> Result.Error(error = NetworkError.REQUEST_TIMEOUT)
-        429 -> Result.Error(error = NetworkError.TOO_MANY_REQUESTS)
-        in 500..599 -> Result.Error(error = NetworkError.SERVER_ERROR)
-        else -> Result.Error(error = NetworkError.UNKNOWN)
+        401 -> Result.Error(NetworkError.INCORRECT_CREDENTIALS)
+        408 -> Result.Error(NetworkError.REQUEST_TIMEOUT)
+        429 -> Result.Error(NetworkError.TOO_MANY_REQUESTS)
+        in 500..599 -> Result.Error(NetworkError.SERVER_ERROR)
+        else -> Result.Error(NetworkError.UNKNOWN)
     }
 }

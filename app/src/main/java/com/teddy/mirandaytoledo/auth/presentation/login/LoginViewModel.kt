@@ -56,7 +56,7 @@ class LoginViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        isSuccess = success,
+                        isSuccess = true,
                     )
                 }
             }

@@ -21,7 +21,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"https://backendm-t.onrender.com/\"")
+            buildConfigField("String", "BASE_URL", "\"https://backendmirandaytoledo.onrender.com/\"")
         }
         release {
             isMinifyEnabled = false
@@ -29,7 +29,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://backendm-t.onrender.com/\"")
+            buildConfigField("String", "BASE_URL", "\"https://backendmirandaytoledo.onrender.com/\"")
         }
     }
     compileOptions {
@@ -63,8 +63,8 @@ dependencies {
 
     testImplementation(libs.junit)
 
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+   // androidTestImplementation(libs.androidx.junit)
+    //androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
 }
