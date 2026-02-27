@@ -28,6 +28,7 @@ fun NavigationWrapper() {
         )
 
         mainGraph(
+            navigator = navigator,
             onLogout = {
                 navigator.navigateAndClear(route = Login, popUpTo = Home)
             }

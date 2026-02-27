@@ -18,6 +18,7 @@ import org.koin.compose.koinInject
 
 @Composable
 fun MainScaffold(
+    currentRoute: Any,
     onLogout: () -> Unit,
     navigator: Navigator = koinInject(),
     content: @Composable () -> Unit,
@@ -28,6 +29,7 @@ fun MainScaffold(
         drawerState = drawerState,
         drawerContent = {
             DrawerContent(
+                currentRoute = currentRoute,
                 onLogout = {
                     scope.launch { drawerState.close() }
                     onLogout()

@@ -97,7 +97,11 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
 @PreviewLightDark
 fun RegisterScreenPreview() {
     MirandaytoledoTheme {
-        MainScaffold({}, Navigator()) {
+        MainScaffold(
+            currentRoute = com.teddy.mirandaytoledo.core.navigation.Register,
+            onLogout = {},
+            navigator = Navigator()
+        ) {
             RegisterScreen()
         }
     }

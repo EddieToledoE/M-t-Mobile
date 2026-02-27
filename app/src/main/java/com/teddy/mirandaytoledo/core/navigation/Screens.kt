@@ -26,6 +26,14 @@ object Count
 @Serializable
 object Settings
 
+@Serializable
+object Catalog
 
+@Serializable
+object ScholarCatalog
 
+@Serializable
+object EducationalLevel
 
+@Serializable
+object CatalogGraphRoute

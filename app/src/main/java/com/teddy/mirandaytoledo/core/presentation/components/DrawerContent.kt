@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AppRegistration
 import androidx.compose.material.icons.filled.FilterFrames
+import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Numbers
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AppRegistration
 import androidx.compose.material.icons.outlined.FilterFrames
+import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material.icons.outlined.Numbers
@@ -37,6 +39,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.teddy.mirandaytoledo.R
+import com.teddy.mirandaytoledo.core.navigation.Catalog
 import com.teddy.mirandaytoledo.core.navigation.Count
 import com.teddy.mirandaytoledo.core.navigation.Finance
 import com.teddy.mirandaytoledo.core.navigation.Home
@@ -48,6 +51,7 @@ import com.teddy.mirandaytoledo.core.navigation.Status
 @Composable
 fun DrawerContent(
     modifier: Modifier = Modifier,
+    currentRoute: Any,
     onLogout: () -> Unit,
     onSelectedItem: (Any) -> Unit,
 ) {
@@ -89,6 +93,12 @@ fun DrawerContent(
             destination = Count
         ),
         NavigationItem(
+            textResId = R.string.navdraw_title_catalog,
+            unselectedIcon = Icons.Outlined.FormatListNumbered,
+            selectedIcon = Icons.Filled.FormatListNumbered,
+            destination = Catalog),
+
+        NavigationItem(
             textResId = R.string.navdraw_title_settings,
             unselectedIcon = Icons.Outlined.Settings,
             selectedIcon = Icons.Filled.Settings,
@@ -101,7 +111,8 @@ fun DrawerContent(
             destination = null
         )
     )
-    var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
+
+    val selectedItemIndex = items.indexOfFirst { it.destination?.javaClass == currentRoute.javaClass }.takeIf { it >= 0 } ?: 0
 
     ModalDrawerSheet() {
         Spacer(modifier = modifier.height(16.dp))
@@ -113,7 +124,6 @@ fun DrawerContent(
                     if (item.textResId == R.string.navdraw_title_logout) {
                         onLogout()
                     } else {
-                        selectedItemIndex = index
                         item.destination?.let(onSelectedItem)
                     }
                 },
