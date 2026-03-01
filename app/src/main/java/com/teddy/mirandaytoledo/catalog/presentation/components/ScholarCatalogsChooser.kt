@@ -13,7 +13,9 @@ import com.teddy.mirandaytoledo.R
 @Composable
 fun ScholarCatalogChooser(
     modifier: Modifier = Modifier,
-    onNavigateToEducationalLevel: () -> Unit = {}
+    onNavigateToEducationalLevel: () -> Unit = {},
+    onNavigateToSchools: () -> Unit = {},
+    onNavigateToGroups: () -> Unit = {},
 ) {
         Column(modifier = modifier.fillMaxSize()) {
             CatalogChooser(
@@ -22,7 +24,17 @@ fun ScholarCatalogChooser(
                 icon = Icons.Outlined.Leaderboard,
                 onClick = onNavigateToEducationalLevel
             )
-            CatalogChooser(modifier = Modifier.weight(weight = 1f), textResId = R.string.scholar_catalog_chooser_schools, icon = Icons.Outlined.AddBusiness)
-            CatalogChooser(modifier = Modifier.weight(weight = 1f), textResId = R.string.scholar_catalog_chooser_groups, icon = Icons.Outlined.Groups)
+            CatalogChooser(
+                modifier = Modifier.weight(weight = 1f),
+                textResId = R.string.scholar_catalog_chooser_schools,
+                icon = Icons.Outlined.AddBusiness,
+                onClick = onNavigateToSchools
+            )
+            CatalogChooser(
+                modifier = Modifier.weight(weight = 1f),
+                textResId = R.string.scholar_catalog_chooser_groups,
+                icon = Icons.Outlined.Groups,
+                onClick = onNavigateToGroups
+            )
         }
     }

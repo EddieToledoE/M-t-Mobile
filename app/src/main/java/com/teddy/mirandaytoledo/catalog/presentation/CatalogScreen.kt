@@ -15,7 +15,9 @@ import com.teddy.mirandaytoledo.catalog.presentation.components.CatalogChooser
 @Composable
 fun CatalogScreen(
     modifier: Modifier = Modifier,
-    onNavigateToScholarCatalog: () -> Unit = {}
+    onNavigateToScholarCatalog: () -> Unit = {},
+    onNavigateToFrameCatalog: () -> Unit = {},
+    onNavigateToPricesCatalog: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         CatalogChooser(
@@ -24,8 +26,18 @@ fun CatalogScreen(
             icon = Icons.Outlined.School,
             onClick = onNavigateToScholarCatalog
         )
-        CatalogChooser(modifier = Modifier.weight(weight = 1f), textResId = R.string.catalog_chooser_frames, icon = Icons.Outlined.FilterFrames)
-        CatalogChooser(modifier = Modifier.weight(weight = 1f), textResId = R.string.catalog_chooser_prices, icon = Icons.Outlined.AttachMoney)
+        CatalogChooser(
+            modifier = Modifier.weight(weight = 1f),
+            textResId = R.string.catalog_chooser_frames,
+            icon = Icons.Outlined.FilterFrames,
+            onClick = onNavigateToFrameCatalog
+        )
+        CatalogChooser(
+            modifier = Modifier.weight(weight = 1f),
+            textResId = R.string.catalog_chooser_prices,
+            icon = Icons.Outlined.AttachMoney,
+            onClick = onNavigateToPricesCatalog
+        )
     }
 }
 

@@ -69,5 +69,10 @@
     <string name="scholar_catalog_chooser_educational_level">Educational Level</string>
     <string name="scholar_catalog_chooser_schools">Schools</string>
     <string name="scholar_catalog_chooser_groups">School Groups</string>
-
+    <string name="frame_catalog_chooser_finishes">Finishes</string>
+    <string name="frame_catalog_chooser_sizes">Sizes</string>
+    <string name="frame_catalog_chooser_models">Models</string>
+    <string name="frame_catalog_chooser_colors">Colors</string>
+    <string name="frame_catalog_chooser_restrictions">Restrictions</string>    <string name="prices_catalog_chooser_product_types">Product Types</string>
+    <string name="prices_catalog_chooser_prices_rules">Prices Rules</string>
 </resources>

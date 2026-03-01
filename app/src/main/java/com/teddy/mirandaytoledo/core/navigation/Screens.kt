@@ -33,7 +33,40 @@ object Catalog
 object ScholarCatalog
 
 @Serializable
+object School
+
+@Serializable
+object SchoolGroup
+
+@Serializable
 object EducationalLevel
+
+@Serializable
+object FrameCatalog
+
+@Serializable
+object FrameFinish
+
+@Serializable
+object FrameSize
+
+@Serializable
+object FrameModel
+
+@Serializable
+object FrameColor
+
+@Serializable
+object FrameRestriction
+
+@Serializable
+object PricesCatalog
+
+@Serializable
+object ProductTypes
+
+@Serializable
+object PricesRules
 
 @Serializable
 object CatalogGraphRoute

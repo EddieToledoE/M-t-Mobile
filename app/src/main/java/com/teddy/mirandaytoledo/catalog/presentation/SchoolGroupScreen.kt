@@ -1,4 +1,4 @@
-  package com.teddy.mirandaytoledo.catalog.presentation
+package com.teddy.mirandaytoledo.catalog.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,11 +8,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun EducationalLevelScreen(modifier: Modifier = Modifier) {
+fun SchoolGroupScreen(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Educational Level Screen (CRUD here)")
+        Text(text = "School Group Screen")
     }
 }
