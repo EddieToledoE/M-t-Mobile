@@ -18,7 +18,7 @@ fun NavigationWrapper() {
     }
     NavHost(
         navController = navController,
-        startDestination = Login,
+        startDestination = Home,
     ) {
 
         authGraph(

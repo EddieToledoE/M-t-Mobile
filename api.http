@@ -1,0 +1,850 @@
+###############################################################################
+# mytbackend API - Complete HTTP Test File
+# Cambia la URL base a tu backend desplegado en Render o local
+###############################################################################
+
+@host = https://backendmirandaytoledo.onrender.com
+# @host = https://mytbackend-api.onrender.com
+
+###############################################################################
+# 🏥 HEALTH CHECK
+###############################################################################
+
+### Health Check
+GET {{host}}/health
+Accept: application/json
+
+###############################################################################
+# 🔐 AUTH
+###############################################################################
+
+### Register
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Admin123!"
+}
+
+### Login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "Eddie",
+  "password": "Gatitor1"
+}
+
+###############################################################################
+# 🎓 EDUCATIONAL LEVELS
+###############################################################################
+
+### Get all educational levels
+GET {{host}}/api/catalog/educational-levels
+Accept: application/json
+
+### Get educational level by ID
+GET {{host}}/api/catalog/educational-levels/1
+Accept: application/json
+
+### Create educational level
+POST {{host}}/api/catalog/educational-levels
+Content-Type: application/json
+
+{
+  "name": "Primaria",
+  "maxGrade": 6,
+  "displayOrder": 1
+}
+
+### Update educational level
+PUT {{host}}/api/catalog/educational-levels/1
+Content-Type: application/json
+
+{
+  "name": "Primaria",
+  "maxGrade": 6,
+  "displayOrder": 1,
+  "isActive": true
+}
+
+### Deactivate educational level
+DELETE {{host}}/api/catalog/educational-levels/1
+
+###############################################################################
+# 🏫 SCHOOLS
+###############################################################################
+
+### Get all schools
+GET {{host}}/api/catalog/schools
+Accept: application/json
+
+### Get schools by educational level
+GET {{host}}/api/catalog/schools/by-level?educationalLevelId=1
+Accept: application/json
+
+### Get school by ID
+GET {{host}}/api/catalog/schools/1
+Accept: application/json
+
+### Create school
+POST {{host}}/api/catalog/schools
+Content-Type: application/json
+
+{
+  "educationalLevelId": 2,
+  "name": "Escuela Benito Juárez"
+}
+
+### Update school
+PUT {{host}}/api/catalog/schools/1
+Content-Type: application/json
+
+{
+  "name": "Escuela Benito Juárez García",
+  "isActive": true
+}
+
+### Deactivate school
+DELETE {{host}}/api/catalog/schools/1
+
+###############################################################################
+# 📚 SCHOOL GROUPS
+###############################################################################
+
+### Get all school groups
+GET {{host}}/api/catalog/school-groups
+Accept: application/json
+
+### Get school groups by school
+GET {{host}}/api/catalog/school-groups/by-school?schoolId=1
+Accept: application/json
+
+### Get school group by ID
+GET {{host}}/api/catalog/school-groups/1
+Accept: application/json
+
+### Create school group
+POST {{host}}/api/catalog/school-groups
+Content-Type: application/json
+
+{
+  "schoolId": 1,
+  "groupCode": "B"
+}
+
+### Update school group
+PUT {{host}}/api/catalog/school-groups/1
+Content-Type: application/json
+
+{
+  "groupCode": "B",
+  "isActive": true
+}
+
+### Deactivate school group
+DELETE {{host}}/api/catalog/school-groups/1
+
+###############################################################################
+# 🖼️ FINISHES
+###############################################################################
+
+### Get all finishes
+GET {{host}}/api/catalog/finishes
+Accept: application/json
+
+### Get finish by ID
+GET {{host}}/api/catalog/finishes/1
+Accept: application/json
+
+### Create finish
+POST {{host}}/api/catalog/finishes
+Content-Type: application/json
+
+{
+  "name": "Resina"
+}
+
+### Update finish
+PUT {{host}}/api/catalog/finishes/1
+Content-Type: application/json
+
+{
+  "name": "Resina Premium",
+  "isActive": true
+}
+
+### Deactivate finish
+DELETE {{host}}/api/catalog/finishes/1
+
+###############################################################################
+# 📐 SIZES
+###############################################################################
+
+### Get all sizes
+GET {{host}}/api/catalog/sizes
+Accept: application/json
+
+### Get size by ID
+GET {{host}}/api/catalog/sizes/1
+Accept: application/json
+
+### Create size
+POST {{host}}/api/catalog/sizes
+Content-Type: application/json
+
+{
+  "name": "13x18",
+  "sizeGroup": "package"
+}
+
+### Update size
+PUT {{host}}/api/catalog/sizes/1
+Content-Type: application/json
+
+{
+  "name": "13x18",
+  "sizeGroup": "package",
+  "isActive": true
+}
+
+### Deactivate size
+DELETE {{host}}/api/catalog/sizes/1
+
+###############################################################################
+# 📦 PRODUCT TYPES
+###############################################################################
+
+### Get all product types
+GET {{host}}/api/catalog/product-types
+Accept: application/json
+
+### Get product type by ID
+GET {{host}}/api/catalog/product-types/1
+Accept: application/json
+
+### Create product type
+POST {{host}}/api/catalog/product-types
+Content-Type: application/json
+
+{
+  "name": "Paquete",
+  "requiresSize": true,
+  "requiresFinish": true,
+  "requiresFrameModel": false,
+  "requiresColor": false,
+  "allowedSizeGroup": "package"
+}
+
+### Update product type
+PUT {{host}}/api/catalog/product-types/1
+Content-Type: application/json
+
+{
+  "name": "Paquete",
+  "requiresSize": true,
+  "requiresFinish": true,
+  "requiresFrameModel": false,
+  "requiresColor": false,
+  "allowedSizeGroup": "package",
+  "isActive": true
+}
+
+### Deactivate product type
+DELETE {{host}}/api/catalog/product-types/1
+
+###############################################################################
+# 🖼️ FRAME MODELS
+###############################################################################
+
+### Get all frame models
+GET {{host}}/api/catalog/frame-models
+Accept: application/json
+
+### Get frame model by ID
+GET {{host}}/api/catalog/frame-models/1
+Accept: application/json
+
+### Create frame model
+POST {{host}}/api/catalog/frame-models
+Content-Type: application/json
+
+{
+  "name": "Marco Clásico"
+}
+
+### Update frame model
+PUT {{host}}/api/catalog/frame-models/1
+Content-Type: application/json
+
+{
+  "name": "Marco Clásico Premium",
+  "isActive": true
+}
+
+### Deactivate frame model
+DELETE {{host}}/api/catalog/frame-models/1
+
+###############################################################################
+# 🎨 COLORS
+###############################################################################
+
+### Get all colors
+GET {{host}}/api/catalog/colors
+Accept: application/json
+
+### Get color by ID
+GET {{host}}/api/catalog/colors/1
+Accept: application/json
+
+### Create color
+POST {{host}}/api/catalog/colors
+Content-Type: application/json
+
+{
+  "name": "Dorado"
+}
+
+### Update color
+PUT {{host}}/api/catalog/colors/1
+Content-Type: application/json
+
+{
+  "name": "Dorado Mate",
+  "isActive": true
+}
+
+### Deactivate color
+DELETE {{host}}/api/catalog/colors/1
+
+###############################################################################
+# 🔗 FRAME MODEL FINISHES (model + finish combos)
+###############################################################################
+
+### Get all frame model finishes
+GET {{host}}/api/catalog/frame-model-finishes
+Accept: application/json
+
+### Get by frame model
+GET {{host}}/api/catalog/frame-model-finishes/by-model?frameModelId=1
+Accept: application/json
+
+### Get by ID
+GET {{host}}/api/catalog/frame-model-finishes/1
+Accept: application/json
+
+### Create frame model finish
+POST {{host}}/api/catalog/frame-model-finishes
+Content-Type: application/json
+
+{
+  "frameModelId": 1,
+  "finishId": 1
+}
+
+### Deactivate frame model finish
+DELETE {{host}}/api/catalog/frame-model-finishes/1
+
+###############################################################################
+# 🔗🎨 FRAME MODEL FINISH COLORS (model + finish + color combos)
+###############################################################################
+
+### Get all frame model finish colors
+GET {{host}}/api/catalog/frame-model-finish-colors
+Accept: application/json
+
+### Get by frame model finish
+GET {{host}}/api/catalog/frame-model-finish-colors/by-frame-model-finish?frameModelFinishId=1
+Accept: application/json
+
+### Get by ID
+GET {{host}}/api/catalog/frame-model-finish-colors/1
+Accept: application/json
+
+### Create frame model finish color
+POST {{host}}/api/catalog/frame-model-finish-colors
+Content-Type: application/json
+
+{
+  "frameModelFinishId": 1,
+  "colorId": 1
+}
+
+### Deactivate frame model finish color
+DELETE {{host}}/api/catalog/frame-model-finish-colors/1
+
+###############################################################################
+# 💰 PRICE RULES
+###############################################################################
+
+### Get all active price rules
+GET {{host}}/api/catalog/price-rules
+Accept: application/json
+
+### Get price rule by ID
+GET {{host}}/api/catalog/price-rules/1
+Accept: application/json
+
+### Lookup price rule by combination
+GET {{host}}/api/catalog/price-rules/lookup?productTypeId=1&finishId=1&sizeId=1
+Accept: application/json
+
+### Create price rule
+POST {{host}}/api/catalog/price-rules
+Content-Type: application/json
+
+{
+  "productTypeId": 1,
+  "finishId": 1,
+  "sizeId": 1,
+  "price": 350.00
+}
+
+### Update price rule
+PUT {{host}}/api/catalog/price-rules/1
+Content-Type: application/json
+
+{
+  "price": 400.00,
+  "isActive": true
+}
+
+### Deactivate price rule
+DELETE {{host}}/api/catalog/price-rules/1
+
+###############################################################################
+# 👨‍👩‍👧 TUTORS
+###############################################################################
+
+### Get all tutors
+GET {{host}}/api/tutors
+Accept: application/json
+
+### Search tutors
+GET {{host}}/api/tutors?search=García
+Accept: application/json
+
+### Get tutor by ID
+GET {{host}}/api/tutors/1
+Accept: application/json
+
+### Create tutor
+POST {{host}}/api/tutors
+Content-Type: application/json
+
+{
+  "firstName": "María",
+  "lastName1": "García",
+  "lastName2": "López",
+  "phone": "6141234567",
+  "email": "maria.garcia@email.com"
+}
+
+### Update tutor
+PUT {{host}}/api/tutors/1
+Content-Type: application/json
+
+{
+  "firstName": "María",
+  "lastName1": "García",
+  "lastName2": "López",
+  "phone": "6149876543",
+  "email": "maria.garcia.updated@email.com"
+}
+
+### Delete tutor
+DELETE {{host}}/api/tutors/1
+
+###############################################################################
+# 🧒 STUDENTS
+###############################################################################
+
+### Get all students
+GET {{host}}/api/students
+Accept: application/json
+
+### Get students by school group
+GET {{host}}/api/students?schoolGroupId=1
+Accept: application/json
+
+### Get students by tutor
+GET {{host}}/api/students?tutorId=1
+Accept: application/json
+
+### Search students
+GET {{host}}/api/students?search=Juan
+Accept: application/json
+
+### Get student by ID
+GET {{host}}/api/students/1
+Accept: application/json
+
+### Create student
+POST {{host}}/api/students
+Content-Type: application/json
+
+{
+  "tutorId": 1,
+  "schoolGroupId": 1,
+  "firstName": "Juan",
+  "lastName1": "García",
+  "lastName2": "López",
+  "photoReference": null,
+  "wantsFacialCleanup": false
+}
+
+### Update student
+PUT {{host}}/api/students/1
+Content-Type: application/json
+
+{
+  "tutorId": 1,
+  "schoolGroupId": 1,
+  "firstName": "Juan Carlos",
+  "lastName1": "García",
+  "lastName2": "López",
+  "photoReference": "IMG_001.jpg",
+  "wantsFacialCleanup": true
+}
+
+### Delete student
+DELETE {{host}}/api/students/1
+
+###############################################################################
+# 📋 ORDERS
+###############################################################################
+
+### Get all orders
+GET {{host}}/api/orders
+Accept: application/json
+
+### Get orders by student
+GET {{host}}/api/orders?studentId=1
+Accept: application/json
+
+### Get orders by tutor
+GET {{host}}/api/orders?tutorId=1
+Accept: application/json
+
+### Get orders by status
+GET {{host}}/api/orders?status=Created
+Accept: application/json
+
+### Get orders by date range
+GET {{host}}/api/orders?dateFrom=2026-01-01&dateTo=2026-12-31
+Accept: application/json
+
+### Get orders with combined filters
+GET {{host}}/api/orders?studentId=1&status=InProgress
+Accept: application/json
+
+### Get order by ID
+GET {{host}}/api/orders/1
+Accept: application/json
+
+### Get order summary (financial)
+GET {{host}}/api/orders/1/summary
+Accept: application/json
+
+### Create order
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "studentId": 1,
+  "notes": "Fotos para graduación"
+}
+
+### Update order (notes only)
+PUT {{host}}/api/orders/1
+Content-Type: application/json
+
+{
+  "notes": "Actualización de notas del pedido"
+}
+
+### Update order status - InProgress
+PATCH {{host}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "InProgress"
+}
+
+### Update order status - Completed
+PATCH {{host}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "Completed"
+}
+
+### Update order status - Delivered
+PATCH {{host}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "Delivered"
+}
+
+### Update order status - Cancelled
+PATCH {{host}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "Cancelled"
+}
+
+### Delete order
+DELETE {{host}}/api/orders/1
+
+###############################################################################
+# 🛒 ORDER ITEMS
+###############################################################################
+
+### Get items for order
+GET {{host}}/api/orders/1/items
+Accept: application/json
+
+### Get specific item
+GET {{host}}/api/orders/1/items/1
+Accept: application/json
+
+### Create item - Paquete (standard, uses PriceRule)
+POST {{host}}/api/orders/1/items
+Content-Type: application/json
+
+{
+  "productTypeId": 1,
+  "quantity": 2,
+  "finishId": 1,
+  "sizeId": 1,
+  "frameModelId": null,
+  "colorId": null,
+  "manualUnitPrice": null,
+  "notes": "Paquete grande mate"
+}
+
+### Create item - Solo fotos (flexible, manual price)
+POST {{host}}/api/orders/1/items
+Content-Type: application/json
+
+{
+  "productTypeId": 4,
+  "quantity": 5,
+  "finishId": null,
+  "sizeId": null,
+  "frameModelId": null,
+  "colorId": null,
+  "manualUnitPrice": 50.00,
+  "notes": "Fotos adicionales"
+}
+
+### Create item - Bastidor (with frame model + finish + color)
+POST {{host}}/api/orders/1/items
+Content-Type: application/json
+
+{
+  "productTypeId": 3,
+  "quantity": 1,
+  "finishId": 2,
+  "sizeId": 3,
+  "frameModelId": 1,
+  "colorId": 5,
+  "manualUnitPrice": null,
+  "notes": "Bastidor 30x40 marco dorado"
+}
+
+### Update item
+PUT {{host}}/api/orders/1/items/1
+Content-Type: application/json
+
+{
+  "quantity": 3,
+  "finishId": 1,
+  "sizeId": 2,
+  "frameModelId": null,
+  "colorId": null,
+  "manualUnitPrice": null,
+  "notes": "Cambio a tamaño mediano"
+}
+
+### Delete item
+DELETE {{host}}/api/orders/1/items/1
+
+###############################################################################
+# 💳 PAYMENTS
+###############################################################################
+
+### Get payments for order
+GET {{host}}/api/orders/1/payments
+Accept: application/json
+
+### Get specific payment
+GET {{host}}/api/orders/1/payments/1
+Accept: application/json
+
+### Create payment - Cash
+POST {{host}}/api/orders/1/payments
+Content-Type: application/json
+
+{
+  "amount": 500.00,
+  "method": "Cash",
+  "note": "Anticipo"
+}
+
+### Create payment - Transfer
+POST {{host}}/api/orders/1/payments
+Content-Type: application/json
+
+{
+  "amount": 350.00,
+  "method": "Transfer",
+  "note": "Pago complementario por transferencia"
+}
+
+### Create payment - Card
+POST {{host}}/api/orders/1/payments
+Content-Type: application/json
+
+{
+  "amount": 150.00,
+  "method": "Card",
+  "note": "Saldo restante con tarjeta"
+}
+
+### Delete payment
+DELETE {{host}}/api/orders/1/payments/1
+
+###############################################################################
+# 📅 CALENDAR EVENTS
+###############################################################################
+
+### Get events by date range
+GET {{host}}/api/calendar/events?from=2026-02-01&to=2026-03-01
+Accept: application/json
+
+### Get upcoming events (default 7 days)
+GET {{host}}/api/calendar/events/upcoming
+Accept: application/json
+
+### Get upcoming events (14 days)
+GET {{host}}/api/calendar/events/upcoming?days=14
+Accept: application/json
+
+### Get event by ID
+GET {{host}}/api/calendar/events/1
+Accept: application/json
+
+### Create event - Free (no relations)
+POST {{host}}/api/calendar/events
+Content-Type: application/json
+
+{
+  "title": "Reunión de equipo",
+  "description": "Planificación semanal",
+  "startAt": "2026-02-20T09:00:00",
+  "endAt": "2026-02-20T10:00:00",
+  "allDay": false,
+  "eventType": "Other",
+  "location": "Oficina",
+  "remindAt": "2026-02-20T08:30:00",
+  "relatedOrderId": null,
+  "relatedSchoolId": null,
+  "relatedStudentId": null
+}
+
+### Create event - Photo session linked to school
+POST {{host}}/api/calendar/events
+Content-Type: application/json
+
+{
+  "title": "Sesión fotos Secundaria 3°A",
+  "description": "Fotos de graduación",
+  "startAt": "2026-02-25T09:00:00",
+  "endAt": "2026-02-25T14:00:00",
+  "allDay": false,
+  "eventType": "PhotoSession",
+  "location": "Auditorio",
+  "remindAt": "2026-02-24T20:00:00",
+  "relatedOrderId": null,
+  "relatedSchoolId": 1,
+  "relatedStudentId": null
+}
+
+### Create event - Delivery linked to order
+POST {{host}}/api/calendar/events
+Content-Type: application/json
+
+{
+  "title": "Entrega pedido #5",
+  "description": null,
+  "startAt": "2026-03-01T16:00:00",
+  "endAt": null,
+  "allDay": false,
+  "eventType": "Delivery",
+  "location": "Escuela Primaria Norte",
+  "remindAt": "2026-03-01T14:00:00",
+  "relatedOrderId": 5,
+  "relatedSchoolId": null,
+  "relatedStudentId": null
+}
+
+### Create event - Payment reminder
+POST {{host}}/api/calendar/events
+Content-Type: application/json
+
+{
+  "title": "Recordatorio pago pedido #3",
+  "description": "Faltan $500 por cobrar",
+  "startAt": "2026-02-28T10:00:00",
+  "endAt": null,
+  "allDay": false,
+  "eventType": "PaymentReminder",
+  "location": null,
+  "remindAt": "2026-02-27T20:00:00",
+  "relatedOrderId": 3,
+  "relatedSchoolId": null,
+  "relatedStudentId": null
+}
+
+### Create event - All day
+POST {{host}}/api/calendar/events
+Content-Type: application/json
+
+{
+  "title": "Día de fotos - Escuela Norte",
+  "description": "Sesiones todo el día",
+  "startAt": "2026-03-10T00:00:00",
+  "endAt": "2026-03-10T23:59:59",
+  "allDay": true,
+  "eventType": "PhotoSession",
+  "location": "Escuela Norte",
+  "remindAt": "2026-03-09T20:00:00",
+  "relatedOrderId": null,
+  "relatedSchoolId": 1,
+  "relatedStudentId": null
+}
+
+### Update event
+PUT {{host}}/api/calendar/events/1
+Content-Type: application/json
+
+{
+  "title": "Sesión fotos actualizada",
+  "description": "Cambio de horario",
+  "startAt": "2026-02-25T10:00:00",
+  "endAt": "2026-02-25T15:00:00",
+  "allDay": false,
+  "eventType": "PhotoSession",
+  "location": "Gimnasio",
+  "remindAt": "2026-02-24T20:00:00",
+  "relatedOrderId": null,
+  "relatedSchoolId": 1,
+  "relatedStudentId": null
+}
+
+### Deactivate event (soft delete)
+DELETE {{host}}/api/calendar/events/1
