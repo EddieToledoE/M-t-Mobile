@@ -1,13 +1,13 @@
 package com.teddy.mirandaytoledo.catalog.di
 
-import com.teddy.mirandaytoledo.catalog.data.networking.EducationalLevelRemoteDataSource
-import com.teddy.mirandaytoledo.catalog.data.repository.EducationalLevelRepositoryImpl
-import com.teddy.mirandaytoledo.catalog.domain.EducationalLevelRepository
-import com.teddy.mirandaytoledo.catalog.domain.usecase.CreateEducationalLevelUseCase
-import com.teddy.mirandaytoledo.catalog.domain.usecase.DeleteEducationalLevelUseCase
-import com.teddy.mirandaytoledo.catalog.domain.usecase.GetEducationalLevelsUseCase
-import com.teddy.mirandaytoledo.catalog.domain.usecase.UpdateEducationalLevelUseCase
-import com.teddy.mirandaytoledo.catalog.presentation.educationalLevel.EducationalLevelsViewModel
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.data.networking.EducationalLevelRemoteDataSource
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.data.repository.EducationalLevelRepositoryImpl
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.EducationalLevelRepository
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.usecase.CreateEducationalLevelUseCase
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.usecase.DeleteEducationalLevelUseCase
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.usecase.GetEducationalLevelsUseCase
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.usecase.UpdateEducationalLevelUseCase
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.presentation.EducationalLevelsViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf

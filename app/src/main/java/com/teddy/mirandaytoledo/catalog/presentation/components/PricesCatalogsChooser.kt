@@ -3,6 +3,7 @@ package com.teddy.mirandaytoledo.catalog.presentation.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Rule
 import androidx.compose.runtime.Composable
@@ -25,7 +26,7 @@ fun PricesCatalogsChooser(
         CatalogChooser(
             modifier = Modifier.weight(weight = 1f),
             textResId = R.string.prices_catalog_chooser_prices_rules,
-            icon = Icons.Outlined.Rule,
+            icon = Icons.AutoMirrored.Outlined.Rule,
             onClick = onNavigateToPricesRules
         )
     }
