@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -25,17 +26,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +50,6 @@ import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.EducationalLevel
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EducationalLevelScreen(
     modifier: Modifier = Modifier,
@@ -68,43 +64,13 @@ fun EducationalLevelScreen(
     var nameInput by remember { mutableStateOf("") }
     var maxGradeInput by remember { mutableStateOf("") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.educational_levels_title),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    selectedLevel = null
-                    nameInput = ""
-                    maxGradeInput = ""
-                    showFormDialog = true
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.educational_levels_add)
-                )
-            }
-        }
-    ) { paddingValues ->
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
         when (val state = uiState) {
             is EducationalLevelsUiState.Loading -> {
                 Box(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -113,9 +79,7 @@ fun EducationalLevelScreen(
 
             is EducationalLevelsUiState.Error -> {
                 Box(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -135,9 +99,7 @@ fun EducationalLevelScreen(
             is EducationalLevelsUiState.Success -> {
                 if (state.levels.isEmpty()) {
                     Box(
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                        modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -148,13 +110,21 @@ fun EducationalLevelScreen(
                 } else {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(minSize = 180.dp),
-                        modifier = modifier
+                        modifier = Modifier
                             .fillMaxSize()
-                            .padding(paddingValues)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                text = stringResource(R.string.educational_levels_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
+
                         items(items = state.levels, key = { it.id }) { level ->
                             EducationalLevelItem(
                                 level = level,
@@ -170,9 +140,30 @@ fun EducationalLevelScreen(
                                 }
                             )
                         }
+
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Spacer(modifier = Modifier.height(88.dp))
+                        }
                     }
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = {
+                selectedLevel = null
+                nameInput = ""
+                maxGradeInput = ""
+                showFormDialog = true
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(R.string.educational_levels_add)
+            )
         }
     }
 
