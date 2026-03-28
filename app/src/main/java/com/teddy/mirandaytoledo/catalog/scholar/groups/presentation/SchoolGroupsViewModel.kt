@@ -6,12 +6,12 @@ import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.usecase.CreateScho
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.usecase.DeleteSchoolGroupUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.usecase.GetSchoolGroupsBySchoolUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.usecase.GetSchoolGroupsUseCase
+import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.SchoolGroup
+import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.usecase.GetSchoolsUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.usecase.UpdateSchoolGroupUseCase
 import com.teddy.mirandaytoledo.core.domain.util.onError
 import com.teddy.mirandaytoledo.core.domain.util.onSuccess
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,15 +27,15 @@ class SchoolGroupsViewModel(
 ) : ViewModel() {
 
     companion object {
-        private const val PAGE_SIZE = 20
-        private const val SEARCH_DEBOUNCE_MS = 300L
+        private const val FETCH_LIMIT = 1000
     }
 
     private val _uiState = MutableStateFlow<SchoolGroupsUiState>(SchoolGroupsUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private var searchJob: Job? = null
     private var isLoadingInProgress = false
+    private var sourceGroups: List<SchoolGroup> = emptyList()
+    private var cachedSchools: List<School> = emptyList()
 
     init {
         loadInitialData()
@@ -45,9 +45,9 @@ class SchoolGroupsViewModel(
         viewModelScope.launch {
             _uiState.value = SchoolGroupsUiState.Loading
 
-            // Load schools for filter
             getSchoolsUseCase(page = 1, pageSize = 100, search = null)
                 .onSuccess { schools ->
+                    cachedSchools = schools
                     _uiState.update { currentState ->
                         if (currentState is SchoolGroupsUiState.Success) {
                             currentState.copy(schools = schools, isLoadingSchools = false)
@@ -57,7 +57,6 @@ class SchoolGroupsViewModel(
                     }
                 }
                 .onError { _ ->
-                    // Continue even if schools fail to load
                     _uiState.update { currentState ->
                         if (currentState is SchoolGroupsUiState.Success) {
                             currentState.copy(isLoadingSchools = false)
@@ -67,7 +66,6 @@ class SchoolGroupsViewModel(
                     }
                 }
 
-            // Load school groups
             loadSchoolGroups(reset = true)
         }
     }
@@ -79,56 +77,56 @@ class SchoolGroupsViewModel(
             val currentState = _uiState.value
             if (currentState !is SchoolGroupsUiState.Success) return@launch
 
-            val page = if (reset) 1 else currentState.currentPage
             val selectedSchoolId = currentState.selectedSchoolId
-            val searchQuery = currentState.searchQuery
 
             isLoadingInProgress = true
             _uiState.update {
                 if (it is SchoolGroupsUiState.Success) {
-                    it.copy(isLoadingMore = true, currentPage = page)
+                    it.copy(isLoadingMore = true)
                 } else {
-                    SchoolGroupsUiState.Success(isLoadingMore = true, currentPage = page)
+                    SchoolGroupsUiState.Success(
+                        schools = cachedSchools,
+                        isLoadingMore = true
+                    )
                 }
             }
 
             val result = if (selectedSchoolId != null) {
                 getSchoolGroupsBySchoolUseCase(
                     schoolId = selectedSchoolId,
-                    page = page,
-                    pageSize = PAGE_SIZE,
-                    search = searchQuery.ifBlank { null }
+                    page = 1,
+                    pageSize = FETCH_LIMIT,
+                    search = null
                 )
             } else {
                 getSchoolGroupsUseCase(
-                    page = page,
-                    pageSize = PAGE_SIZE,
-                    search = searchQuery.ifBlank { null }
+                    page = 1,
+                    pageSize = FETCH_LIMIT,
+                    search = null
                 )
             }
 
             result
                 .onSuccess { newGroups ->
+                    sourceGroups = newGroups
                     _uiState.update { currentState ->
                         if (currentState is SchoolGroupsUiState.Success) {
-                            val groups = if (reset) {
-                                newGroups
-                            } else {
-                                (currentState.schoolGroups + newGroups).distinctBy { it.id }
-                            }
                             currentState.copy(
-                                schoolGroups = groups,
+                                schoolGroups = applySearchFilter(
+                                    groups = sourceGroups,
+                                    query = currentState.searchQuery
+                                ),
+                                schools = cachedSchools,
                                 isLoadingMore = false,
-                                hasMoreData = newGroups.size == PAGE_SIZE,
-                                currentPage = page + 1
+                                hasMoreData = false,
+                                currentPage = 1
                             )
                         } else {
                             SchoolGroupsUiState.Success(
-                                schoolGroups = newGroups,
-                                schools = (currentState as? SchoolGroupsUiState.Success)?.schools
-                                    ?: emptyList(),
-                                hasMoreData = newGroups.size == PAGE_SIZE,
-                                currentPage = page + 1
+                                schoolGroups = applySearchFilter(sourceGroups, ""),
+                                schools = cachedSchools,
+                                hasMoreData = false,
+                                currentPage = 1
                             )
                         }
                     }
@@ -148,19 +146,18 @@ class SchoolGroupsViewModel(
     }
 
     fun onSearchChanged(query: String) {
-        searchJob?.cancel()
-
         _uiState.update { currentState ->
             if (currentState is SchoolGroupsUiState.Success) {
-                currentState.copy(searchQuery = query)
+                currentState.copy(
+                    searchQuery = query,
+                    schoolGroups = applySearchFilter(sourceGroups, query)
+                )
             } else {
-                SchoolGroupsUiState.Success(searchQuery = query)
+                SchoolGroupsUiState.Success(
+                    searchQuery = query,
+                    schools = cachedSchools
+                )
             }
-        }
-
-        searchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
-            loadSchoolGroups(reset = true)
         }
     }
 
@@ -237,16 +234,24 @@ class SchoolGroupsViewModel(
     }
 
     fun loadMoreIfNeeded(lastVisibleIndex: Int, totalCount: Int) {
-        val currentState = _uiState.value
-        if (currentState !is SchoolGroupsUiState.Success) return
-
-        val threshold = totalCount - 5
-        if (lastVisibleIndex >= threshold && currentState.hasMoreData && !currentState.isLoadingMore) {
-            loadSchoolGroups(reset = false)
-        }
+        return
     }
 
     fun retryLoad() {
         loadSchoolGroups(reset = true)
+    }
+
+    private fun applySearchFilter(
+        groups: List<SchoolGroup>,
+        query: String
+    ): List<SchoolGroup> {
+        val term = query.trim()
+        if (term.isBlank()) return groups
+
+        return groups.filter { group ->
+            group.groupCode.contains(term, ignoreCase = true) ||
+                (group.schoolName?.contains(term, ignoreCase = true) == true) ||
+                (group.educationalLevelName?.contains(term, ignoreCase = true) == true)
+        }
     }
 }

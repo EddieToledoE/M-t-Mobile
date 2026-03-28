@@ -2,16 +2,16 @@ package com.teddy.mirandaytoledo.catalog.scholar.schools.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.EducationalLevel
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.usecase.CreateSchoolUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.usecase.DeleteSchoolUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.usecase.GetEducationalLevelsUseCase
+import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.usecase.GetSchoolsByLevelUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.usecase.GetSchoolsUseCase
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.usecase.UpdateSchoolUseCase
 import com.teddy.mirandaytoledo.core.domain.util.onError
 import com.teddy.mirandaytoledo.core.domain.util.onSuccess
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,15 +27,15 @@ class SchoolsViewModel(
 ) : ViewModel() {
 
     companion object {
-        private const val PAGE_SIZE = 20
-        private const val SEARCH_DEBOUNCE_MS = 300L
+        private const val FETCH_LIMIT = 1000
     }
 
     private val _uiState = MutableStateFlow<SchoolsUiState>(SchoolsUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private var searchJob: Job? = null
     private var isLoadingInProgress = false
+    private var sourceSchools: List<School> = emptyList()
+    private var cachedLevels: List<EducationalLevel> = emptyList()
 
     init {
         loadInitialData()
@@ -45,9 +45,9 @@ class SchoolsViewModel(
         viewModelScope.launch {
             _uiState.value = SchoolsUiState.Loading
             
-            // Load educational levels
             getEducationalLevelsUseCase()
                 .onSuccess { levels ->
+                    cachedLevels = levels
                     _uiState.update { currentState ->
                         if (currentState is SchoolsUiState.Success) {
                             currentState.copy(educationalLevels = levels, isLoadingLevels = false)
@@ -62,7 +62,6 @@ class SchoolsViewModel(
                     }
                 }
 
-            // Load schools
             loadSchools(reset = true)
         }
     }
@@ -74,56 +73,56 @@ class SchoolsViewModel(
             val currentState = _uiState.value
             if (currentState !is SchoolsUiState.Success) return@launch
 
-            val page = if (reset) 1 else currentState.currentPage
             val selectedLevelId = currentState.selectedLevelId
-            val searchQuery = currentState.searchQuery
 
             isLoadingInProgress = true
             _uiState.update {
                 if (it is SchoolsUiState.Success) {
-                    it.copy(isLoadingMore = true, currentPage = page)
+                    it.copy(isLoadingMore = true)
                 } else {
-                    SchoolsUiState.Success(isLoadingMore = true, currentPage = page)
+                    SchoolsUiState.Success(
+                        educationalLevels = cachedLevels,
+                        isLoadingMore = true
+                    )
                 }
             }
 
             val result = if (selectedLevelId != null) {
                 getSchoolsByLevelUseCase(
                     educationalLevelId = selectedLevelId,
-                    page = page,
-                    pageSize = PAGE_SIZE,
-                    search = searchQuery.ifBlank { null }
+                    page = 1,
+                    pageSize = FETCH_LIMIT,
+                    search = null
                 )
             } else {
                 getSchoolsUseCase(
-                    page = page,
-                    pageSize = PAGE_SIZE,
-                    search = searchQuery.ifBlank { null }
+                    page = 1,
+                    pageSize = FETCH_LIMIT,
+                    search = null
                 )
             }
 
             result
                 .onSuccess { newSchools ->
+                    sourceSchools = newSchools
                     _uiState.update { currentState ->
                         if (currentState is SchoolsUiState.Success) {
-                            val schools = if (reset) {
-                                newSchools
-                            } else {
-                                (currentState.schools + newSchools).distinctBy { it.id }
-                            }
                             currentState.copy(
-                                schools = schools,
+                                schools = applySearchFilter(
+                                    schools = sourceSchools,
+                                    query = currentState.searchQuery
+                                ),
+                                educationalLevels = cachedLevels,
                                 isLoadingMore = false,
-                                hasMoreData = newSchools.size == PAGE_SIZE,
-                                currentPage = page + 1
+                                hasMoreData = false,
+                                currentPage = 1
                             )
                         } else {
                             SchoolsUiState.Success(
-                                schools = newSchools,
-                                educationalLevels = (currentState as? SchoolsUiState.Success)?.educationalLevels
-                                    ?: emptyList(),
-                                hasMoreData = newSchools.size == PAGE_SIZE,
-                                currentPage = page + 1
+                                schools = applySearchFilter(sourceSchools, ""),
+                                educationalLevels = cachedLevels,
+                                hasMoreData = false,
+                                currentPage = 1
                             )
                         }
                     }
@@ -143,19 +142,18 @@ class SchoolsViewModel(
     }
 
     fun onSearchChanged(query: String) {
-        searchJob?.cancel()
-        
         _uiState.update { currentState ->
             if (currentState is SchoolsUiState.Success) {
-                currentState.copy(searchQuery = query)
+                currentState.copy(
+                    searchQuery = query,
+                    schools = applySearchFilter(sourceSchools, query)
+                )
             } else {
-                SchoolsUiState.Success(searchQuery = query)
+                SchoolsUiState.Success(
+                    searchQuery = query,
+                    educationalLevels = cachedLevels
+                )
             }
-        }
-
-        searchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
-            loadSchools(reset = true)
         }
     }
 
@@ -232,16 +230,23 @@ class SchoolsViewModel(
     }
 
     fun loadMoreIfNeeded(lastVisibleIndex: Int, totalCount: Int) {
-        val currentState = _uiState.value
-        if (currentState !is SchoolsUiState.Success) return
-
-        val threshold = totalCount - 5
-        if (lastVisibleIndex >= threshold && currentState.hasMoreData && !currentState.isLoadingMore) {
-            loadSchools(reset = false)
-        }
+        return
     }
 
     fun retryLoad() {
         loadSchools(reset = true)
+    }
+
+    private fun applySearchFilter(
+        schools: List<School>,
+        query: String
+    ): List<School> {
+        val term = query.trim()
+        if (term.isBlank()) return schools
+
+        return schools.filter { school ->
+            school.name.contains(term, ignoreCase = true) ||
+                    school.educationalLevelName?.contains(term, ignoreCase = true) == true
+        }
     }
 }
