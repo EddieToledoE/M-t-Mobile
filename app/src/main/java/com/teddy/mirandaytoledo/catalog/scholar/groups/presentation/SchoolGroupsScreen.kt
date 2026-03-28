@@ -1,5 +1,6 @@
 package com.teddy.mirandaytoledo.catalog.scholar.groups.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,21 +11,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -32,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,12 +51,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
+import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.SchoolGroup
+import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.core.domain.util.NetworkError
 import org.koin.androidx.compose.koinViewModel
 
@@ -61,23 +70,25 @@ fun SchoolGroupsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Dialog states
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedGroup by remember { mutableStateOf<SchoolGroup?>(null) }
 
-    // Form fields
     var formGroupCodeInput by remember { mutableStateOf("") }
     var formSelectedSchoolId by remember { mutableStateOf<Int?>(null) }
     var formIsActive by remember { mutableStateOf(true) }
 
-    // School filter dropdown
     var expandedSchoolDropdown by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Grupos de Escuelas", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.school_groups_title),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -94,11 +105,13 @@ fun SchoolGroupsScreen(
                     showFormDialog = true
                 }
             ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar grupo")
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.school_groups_add)
+                )
             }
         }
     ) { paddingValues ->
-
         when (val state = uiState) {
             is SchoolGroupsUiState.Loading -> {
                 Box(
@@ -127,20 +140,12 @@ fun SchoolGroupsScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    // Search Bar
-                    SearchBar(
+                    FiltersPanel(
                         searchQuery = state.searchQuery,
-                        onSearchChanged = { viewModel.onSearchChanged(it) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
-                    // School Filter Dropdown
-                    SchoolFilterDropdown(
                         schools = state.schools,
                         selectedSchoolId = state.selectedSchoolId,
                         isExpanded = expandedSchoolDropdown,
+                        onSearchChanged = { viewModel.onSearchChanged(it) },
                         onExpandedChange = { expandedSchoolDropdown = it },
                         onSchoolSelected = { schoolId ->
                             expandedSchoolDropdown = false
@@ -148,16 +153,11 @@ fun SchoolGroupsScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Groups List
                     if (state.schoolGroups.isEmpty() && !state.isLoadingMore) {
-                        EmptyView(
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        EmptyView(modifier = Modifier.fillMaxSize())
                     } else {
                         SchoolGroupsList(
                             groups = state.schoolGroups,
@@ -185,10 +185,15 @@ fun SchoolGroupsScreen(
         }
     }
 
-    // Form Dialog (Create/Edit)
     if (showFormDialog) {
         SchoolGroupFormDialog(
-            title = if (selectedGroup != null) "Editar Grupo" else "Nuevo Grupo",
+            title = stringResource(
+                if (selectedGroup != null) {
+                    R.string.school_groups_edit_dialog_title
+                } else {
+                    R.string.school_groups_create_dialog_title
+                }
+            ),
             groupCodeValue = formGroupCodeInput,
             onGroupCodeChange = { formGroupCodeInput = it },
             selectedSchoolId = formSelectedSchoolId,
@@ -204,25 +209,29 @@ fun SchoolGroupsScreen(
                         groupCode = formGroupCodeInput,
                         isActive = formIsActive
                     )
-                } else {
-                    if (formSelectedSchoolId != null) {
-                        viewModel.createSchoolGroup(
-                            schoolId = formSelectedSchoolId!!,
-                            groupCode = formGroupCodeInput
-                        )
-                    }
+                } else if (formSelectedSchoolId != null) {
+                    viewModel.createSchoolGroup(
+                        schoolId = formSelectedSchoolId!!,
+                        groupCode = formGroupCodeInput
+                    )
                 }
                 showFormDialog = false
             }
         )
     }
 
-    // Delete Confirmation Dialog
     if (showDeleteDialog && selectedGroup != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Confirmar eliminación") },
-            text = { Text("¿Está seguro que desea desactivar el grupo \"${selectedGroup!!.groupCode}\"?") },
+            title = { Text(stringResource(R.string.school_groups_delete_dialog_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.school_groups_delete_dialog_message,
+                        selectedGroup!!.groupCode
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -231,15 +240,66 @@ fun SchoolGroupsScreen(
                         selectedGroup = null
                     }
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun FiltersPanel(
+    searchQuery: String,
+    schools: List<School>,
+    selectedSchoolId: Int?,
+    isExpanded: Boolean,
+    onSearchChanged: (String) -> Unit,
+    onExpandedChange: (Boolean) -> Unit,
+    onSchoolSelected: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        modifier = modifier,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.school_groups_filters_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            SearchBar(
+                searchQuery = searchQuery,
+                onSearchChanged = onSearchChanged,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            SchoolFilterDropdown(
+                schools = schools,
+                selectedSchoolId = selectedSchoolId,
+                isExpanded = isExpanded,
+                onExpandedChange = onExpandedChange,
+                onSchoolSelected = onSchoolSelected,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -252,13 +312,16 @@ private fun SearchBar(
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchChanged,
-        modifier = modifier.height(56.dp),
-        placeholder = { Text("Buscar por código...") },
+        modifier = modifier,
+        placeholder = { Text(stringResource(R.string.school_groups_search_placeholder)) },
         singleLine = true,
         trailingIcon = {
             if (searchQuery.isNotEmpty()) {
                 IconButton(onClick = { onSearchChanged("") }) {
-                    Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda")
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.school_groups_clear_search)
+                    )
                 }
             }
         }
@@ -281,8 +344,14 @@ private fun SchoolFilterDropdown(
             label = {
                 val selectedSchool = schools.find { it.id == selectedSchoolId }
                 Text(
-                    text = selectedSchool?.name ?: "Todas las escuelas",
+                    text = selectedSchool?.name ?: stringResource(R.string.school_groups_all_schools),
                     modifier = Modifier.fillMaxWidth()
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.School,
+                    contentDescription = null
                 )
             },
             modifier = Modifier.fillMaxWidth()
@@ -294,7 +363,7 @@ private fun SchoolFilterDropdown(
             modifier = Modifier.fillMaxWidth()
         ) {
             DropdownMenuItem(
-                text = { Text("Todas las escuelas") },
+                text = { Text(stringResource(R.string.school_groups_all_schools)) },
                 onClick = {
                     onSchoolSelected(null)
                     onExpandedChange(false)
@@ -326,7 +395,7 @@ private fun SchoolGroupsList(
 ) {
     LazyColumn(
         modifier = modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(groups) { index, group ->
             SchoolGroupCard(
@@ -335,13 +404,11 @@ private fun SchoolGroupsList(
                 onDeleteClick = { onDeleteClick(group) }
             )
 
-            // Trigger load more
             if (index == groups.size - 1 && hasMoreData) {
                 onLoadMore(index, groups.size)
             }
         }
 
-        // Loading indicator at the end
         if (isLoadingMore) {
             item {
                 Box(
@@ -364,66 +431,148 @@ private fun SchoolGroupCard(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header: GroupCode and Status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = "Grupo: ${group.groupCode}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Groups,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
 
-                if (!group.isActive) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("Inactivo", fontSize = MaterialTheme.typography.labelSmall.fontSize) }
+                    Column {
+                        Text(
+                            text = stringResource(R.string.school_groups_card_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.school_groups_card_group_code,
+                                group.groupCode
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Surface(
+                    color = if (group.isActive) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (group.isActive) {
+                                R.string.status_active
+                            } else {
+                                R.string.status_inactive
+                            }
+                        ),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (group.isActive) {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 }
             }
 
-            // School ID
-            Text(
-                text = "Escuela ID: ${group.schoolId}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                AssistChip(
+                    onClick = {},
+                    label = {
+                        Text(
+                            group.schoolName
+                                ?: stringResource(R.string.school_groups_without_school)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.School,
+                            contentDescription = null
+                        )
+                    }
+                )
 
-            // Actions
+                Text(
+                    text = group.educationalLevelName
+                        ?: stringResource(
+                            R.string.school_groups_level_id_fallback,
+                            group.educationalLevelId ?: 0
+                        ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Text(
+                    text = stringResource(R.string.school_groups_card_id, group.id),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = onEditClick) {
+                TextButton(onClick = onEditClick) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar",
-                        tint = MaterialTheme.colorScheme.primary
+                        contentDescription = stringResource(R.string.edit)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.edit))
                 }
-                IconButton(onClick = onDeleteClick) {
+
+                TextButton(
+                    onClick = onDeleteClick,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = MaterialTheme.colorScheme.error
+                        contentDescription = stringResource(R.string.delete)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.delete))
                 }
             }
         }
@@ -454,25 +603,30 @@ private fun SchoolGroupFormDialog(
                 modifier = modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Group Code Input
                 OutlinedTextField(
                     value = groupCodeValue,
                     onValueChange = onGroupCodeChange,
-                    label = { Text("Código de grupo") },
+                    label = { Text(stringResource(R.string.school_groups_code_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     singleLine = true
                 )
 
-                // School Dropdown
                 Box(modifier = Modifier.fillMaxWidth()) {
                     AssistChip(
                         onClick = { expandedSchoolDropdown = !expandedSchoolDropdown },
                         label = {
                             val selectedSchool = schools.find { it.id == selectedSchoolId }
                             Text(
-                                text = selectedSchool?.name ?: "Seleccionar escuela",
+                                text = selectedSchool?.name
+                                    ?: stringResource(R.string.school_groups_select_school),
                                 modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.School,
+                                contentDescription = null
                             )
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -495,13 +649,12 @@ private fun SchoolGroupFormDialog(
                     }
                 }
 
-                // Is Active Switch
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Activo")
+                    Text(stringResource(R.string.school_groups_active_label))
                     Switch(
                         checked = isActive,
                         onCheckedChange = onIsActiveChange
@@ -514,12 +667,12 @@ private fun SchoolGroupFormDialog(
                 onClick = onConfirm,
                 enabled = groupCodeValue.isNotBlank() && selectedSchoolId != null
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDialogDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -535,16 +688,17 @@ private fun EmptyView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "No hay grupos",
+                text = stringResource(R.string.school_groups_empty_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Pulsa + para crear un nuevo grupo",
+                text = stringResource(R.string.school_groups_empty_message),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -568,28 +722,32 @@ private fun ErrorView(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Error al cargar grupos",
+                text = stringResource(R.string.school_groups_error_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = when (error) {
-                    NetworkError.NO_INTERNET -> "No hay conexión a internet"
-                    NetworkError.REQUEST_TIMEOUT -> "La solicitud tardó demasiado"
-                    NetworkError.SERVER_ERROR -> "Error del servidor"
-                    NetworkError.INCORRECT_CREDENTIALS -> "Credenciales incorrectas"
-                    NetworkError.TOO_MANY_REQUESTS -> "Demasiadas solicitudes"
-                    else -> "Error desconocido"
-                },
+                text = stringResource(error.toSchoolGroupErrorStringRes()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(onClick = onRetry) {
-                Text("Reintentar")
+                Text(stringResource(R.string.retry))
             }
         }
+    }
+}
+
+private fun NetworkError.toSchoolGroupErrorStringRes(): Int {
+    return when (this) {
+        NetworkError.NO_INTERNET -> R.string.error_no_internet
+        NetworkError.REQUEST_TIMEOUT -> R.string.error_request_timeout
+        NetworkError.SERVER_ERROR -> R.string.error_server_error
+        NetworkError.INCORRECT_CREDENTIALS -> R.string.error_incorrect_credential
+        NetworkError.TOO_MANY_REQUESTS -> R.string.error_many_request
+        else -> R.string.error_unknown
     }
 }

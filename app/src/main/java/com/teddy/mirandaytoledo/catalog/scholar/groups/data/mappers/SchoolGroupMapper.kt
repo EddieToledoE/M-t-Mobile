@@ -7,6 +7,9 @@ fun SchoolGroupDto.toDomain(): SchoolGroup {
     return SchoolGroup(
         id = id,
         schoolId = schoolId,
+        schoolName = schoolName,
+        educationalLevelId = educationalLevelId,
+        educationalLevelName = educationalLevelName,
         groupCode = groupCode,
         isActive = isActive
     )

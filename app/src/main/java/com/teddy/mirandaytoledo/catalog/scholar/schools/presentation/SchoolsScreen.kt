@@ -1,5 +1,6 @@
 package com.teddy.mirandaytoledo.catalog.scholar.schools.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,21 +11,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -32,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,10 +51,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.EducationalLevel
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.core.domain.util.NetworkError
@@ -61,23 +70,25 @@ fun SchoolsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Dialog states
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedSchool by remember { mutableStateOf<School?>(null) }
 
-    // Form fields
     var formNameInput by remember { mutableStateOf("") }
     var formSelectedLevelId by remember { mutableStateOf<Int?>(null) }
     var formIsActive by remember { mutableStateOf(true) }
 
-    // Level filter dropdown
     var expandedLevelDropdown by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Escuelas", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.schools_title),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -94,11 +105,13 @@ fun SchoolsScreen(
                     showFormDialog = true
                 }
             ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar escuela")
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.schools_add)
+                )
             }
         }
     ) { paddingValues ->
-
         when (val state = uiState) {
             is SchoolsUiState.Loading -> {
                 Box(
@@ -127,20 +140,12 @@ fun SchoolsScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    // Search Bar
-                    SearchBar(
+                    FiltersPanel(
                         searchQuery = state.searchQuery,
-                        onSearchChanged = { viewModel.onSearchChanged(it) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
-                    // Level Filter Dropdown
-                    LevelFilterDropdown(
                         educationalLevels = state.educationalLevels,
                         selectedLevelId = state.selectedLevelId,
                         isExpanded = expandedLevelDropdown,
+                        onSearchChanged = { viewModel.onSearchChanged(it) },
                         onExpandedChange = { expandedLevelDropdown = it },
                         onLevelSelected = { levelId ->
                             expandedLevelDropdown = false
@@ -148,16 +153,11 @@ fun SchoolsScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Schools List
                     if (state.schools.isEmpty() && !state.isLoadingMore) {
-                        EmptyView(
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        EmptyView(modifier = Modifier.fillMaxSize())
                     } else {
                         SchoolsList(
                             schools = state.schools,
@@ -185,10 +185,15 @@ fun SchoolsScreen(
         }
     }
 
-    // Form Dialog (Create/Edit)
     if (showFormDialog) {
         SchoolFormDialog(
-            title = if (selectedSchool != null) "Editar Escuela" else "Nueva Escuela",
+            title = stringResource(
+                if (selectedSchool != null) {
+                    R.string.schools_edit_dialog_title
+                } else {
+                    R.string.schools_create_dialog_title
+                }
+            ),
             nameValue = formNameInput,
             onNameChange = { formNameInput = it },
             selectedLevelId = formSelectedLevelId,
@@ -204,25 +209,29 @@ fun SchoolsScreen(
                         name = formNameInput,
                         isActive = formIsActive
                     )
-                } else {
-                    if (formSelectedLevelId != null) {
-                        viewModel.createSchool(
-                            educationalLevelId = formSelectedLevelId!!,
-                            name = formNameInput
-                        )
-                    }
+                } else if (formSelectedLevelId != null) {
+                    viewModel.createSchool(
+                        educationalLevelId = formSelectedLevelId!!,
+                        name = formNameInput
+                    )
                 }
                 showFormDialog = false
             }
         )
     }
 
-    // Delete Confirmation Dialog
     if (showDeleteDialog && selectedSchool != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Confirmar eliminación") },
-            text = { Text("¿Está seguro que desea desactivar la escuela \"${selectedSchool!!.name}\"?") },
+            title = { Text(stringResource(R.string.schools_delete_dialog_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.schools_delete_dialog_message,
+                        selectedSchool!!.name
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -231,15 +240,66 @@ fun SchoolsScreen(
                         selectedSchool = null
                     }
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun FiltersPanel(
+    searchQuery: String,
+    educationalLevels: List<EducationalLevel>,
+    selectedLevelId: Int?,
+    isExpanded: Boolean,
+    onSearchChanged: (String) -> Unit,
+    onExpandedChange: (Boolean) -> Unit,
+    onLevelSelected: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        modifier = modifier,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.schools_filters_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            SearchBar(
+                searchQuery = searchQuery,
+                onSearchChanged = onSearchChanged,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            LevelFilterDropdown(
+                educationalLevels = educationalLevels,
+                selectedLevelId = selectedLevelId,
+                isExpanded = isExpanded,
+                onExpandedChange = onExpandedChange,
+                onLevelSelected = onLevelSelected,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -252,13 +312,16 @@ private fun SearchBar(
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchChanged,
-        modifier = modifier.height(56.dp),
-        placeholder = { Text("Buscar escuelas...") },
+        modifier = modifier,
+        placeholder = { Text(stringResource(R.string.schools_search_placeholder)) },
         singleLine = true,
         trailingIcon = {
             if (searchQuery.isNotEmpty()) {
                 IconButton(onClick = { onSearchChanged("") }) {
-                    Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda")
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.schools_clear_search)
+                    )
                 }
             }
         }
@@ -279,11 +342,16 @@ private fun LevelFilterDropdown(
         AssistChip(
             onClick = { onExpandedChange(!isExpanded) },
             label = {
-                val selectedLevel =
-                    educationalLevels.find { it.id == selectedLevelId }
+                val selectedLevel = educationalLevels.find { it.id == selectedLevelId }
                 Text(
-                    text = selectedLevel?.name ?: "Todos los niveles",
+                    text = selectedLevel?.name ?: stringResource(R.string.schools_all_levels),
                     modifier = Modifier.fillMaxWidth()
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.School,
+                    contentDescription = null
                 )
             },
             modifier = Modifier.fillMaxWidth()
@@ -295,7 +363,7 @@ private fun LevelFilterDropdown(
             modifier = Modifier.fillMaxWidth()
         ) {
             DropdownMenuItem(
-                text = { Text("Todos los niveles") },
+                text = { Text(stringResource(R.string.schools_all_levels)) },
                 onClick = {
                     onLevelSelected(null)
                     onExpandedChange(false)
@@ -327,7 +395,7 @@ private fun SchoolsList(
 ) {
     LazyColumn(
         modifier = modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(schools) { index, school ->
             SchoolCard(
@@ -336,13 +404,11 @@ private fun SchoolsList(
                 onDeleteClick = { onDeleteClick(school) }
             )
 
-            // Trigger load more
             if (index == schools.size - 1 && hasMoreData) {
                 onLoadMore(index, schools.size)
             }
         }
 
-        // Loading indicator at the end
         if (isLoadingMore) {
             item {
                 Box(
@@ -365,65 +431,135 @@ private fun SchoolCard(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header: Name and Status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = school.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Business,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
 
-                if (!school.isActive) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("Inactiva", fontSize = MaterialTheme.typography.labelSmall.fontSize) }
+                    Column {
+                        Text(
+                            text = stringResource(R.string.schools_card_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = school.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Surface(
+                    color = if (school.isActive) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (school.isActive) {
+                                R.string.status_active
+                            } else {
+                                R.string.status_inactive
+                            }
+                        ),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (school.isActive) {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 }
             }
 
-            // Level Badge
-            AssistChip(
-                onClick = {},
-                label = { Text(school.educationalLevelName ?: "Sin nivel") }
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                AssistChip(
+                    onClick = {},
+                    label = {
+                        Text(
+                            school.educationalLevelName
+                                ?: stringResource(R.string.schools_without_level)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.School,
+                            contentDescription = null
+                        )
+                    }
+                )
 
-            // Actions
+                Text(
+                    text = stringResource(R.string.schools_card_id, school.id),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = onEditClick) {
+                TextButton(onClick = onEditClick) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar",
-                        tint = MaterialTheme.colorScheme.primary
+                        contentDescription = stringResource(R.string.edit)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.edit))
                 }
-                IconButton(onClick = onDeleteClick) {
+
+                TextButton(
+                    onClick = onDeleteClick,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = MaterialTheme.colorScheme.error
+                        contentDescription = stringResource(R.string.delete)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.delete))
                 }
             }
         }
@@ -454,26 +590,30 @@ private fun SchoolFormDialog(
                 modifier = modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // School Name Input
                 OutlinedTextField(
                     value = nameValue,
                     onValueChange = onNameChange,
-                    label = { Text("Nombre de la escuela") },
+                    label = { Text(stringResource(R.string.schools_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     singleLine = true
                 )
 
-                // Educational Level Dropdown
                 Box(modifier = Modifier.fillMaxWidth()) {
                     AssistChip(
                         onClick = { expandedLevelDropdown = !expandedLevelDropdown },
                         label = {
-                            val selectedLevel =
-                                educationalLevels.find { it.id == selectedLevelId }
+                            val selectedLevel = educationalLevels.find { it.id == selectedLevelId }
                             Text(
-                                text = selectedLevel?.name ?: "Seleccionar nivel",
+                                text = selectedLevel?.name
+                                    ?: stringResource(R.string.schools_select_level),
                                 modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.School,
+                                contentDescription = null
                             )
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -496,13 +636,12 @@ private fun SchoolFormDialog(
                     }
                 }
 
-                // Is Active Switch
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Activa")
+                    Text(stringResource(R.string.schools_active_label))
                     Switch(
                         checked = isActive,
                         onCheckedChange = onIsActiveChange
@@ -515,12 +654,12 @@ private fun SchoolFormDialog(
                 onClick = onConfirm,
                 enabled = nameValue.isNotBlank() && selectedLevelId != null
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDialogDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -536,16 +675,17 @@ private fun EmptyView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "No hay escuelas",
+                text = stringResource(R.string.schools_empty_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Pulsa + para crear una nueva escuela",
+                text = stringResource(R.string.schools_empty_message),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -569,28 +709,32 @@ private fun ErrorView(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Error al cargar escuelas",
+                text = stringResource(R.string.schools_error_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = when (error) {
-                    NetworkError.NO_INTERNET -> "No hay conexión a internet"
-                    NetworkError.REQUEST_TIMEOUT -> "La solicitud tardó demasiado"
-                    NetworkError.SERVER_ERROR -> "Error del servidor"
-                    NetworkError.INCORRECT_CREDENTIALS -> "Credenciales incorrectas"
-                    NetworkError.TOO_MANY_REQUESTS -> "Demasiadas solicitudes"
-                    else -> "Error desconocido"
-                },
+                text = stringResource(error.toSchoolErrorStringRes()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(onClick = onRetry) {
-                Text("Reintentar")
+                Text(stringResource(R.string.retry))
             }
         }
+    }
+}
+
+private fun NetworkError.toSchoolErrorStringRes(): Int {
+    return when (this) {
+        NetworkError.NO_INTERNET -> R.string.error_no_internet
+        NetworkError.REQUEST_TIMEOUT -> R.string.error_request_timeout
+        NetworkError.SERVER_ERROR -> R.string.error_server_error
+        NetworkError.INCORRECT_CREDENTIALS -> R.string.error_incorrect_credential
+        NetworkError.TOO_MANY_REQUESTS -> R.string.error_many_request
+        else -> R.string.error_unknown
     }
 }
