@@ -1,18 +1,10 @@
 package com.teddy.mirandaytoledo.catalog.presentation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.teddy.mirandaytoledo.catalog.frames.models.presentation.FrameModelsScreen
 
 @Composable
 fun FrameModelScreen(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Frame Model Screen")
-    }
+    FrameModelsScreen(modifier = modifier)
 }

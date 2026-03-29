@@ -1,7 +1,9 @@
 package com.teddy.mirandaytoledo
 
 import android.app.Application
+import com.teddy.mirandaytoledo.catalog.di.colorModule
 import com.teddy.mirandaytoledo.catalog.di.educationalLevelModule
+import com.teddy.mirandaytoledo.catalog.di.frameModelModule
 import com.teddy.mirandaytoledo.catalog.di.finishModule
 import com.teddy.mirandaytoledo.catalog.di.schoolGroupModule
 import com.teddy.mirandaytoledo.catalog.di.schoolModule
@@ -24,6 +26,8 @@ class MirandaytoledoApp : Application() {
                 schoolModule,
                 schoolGroupModule,
                 finishModule,
+                colorModule,
+                frameModelModule,
                 sizeModule
             )
         }
