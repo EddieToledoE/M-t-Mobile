@@ -15,6 +15,17 @@ class Navigator {
         navController?.navigate(route)
     }
 
+    fun navigateToTopLevel(route: Any) {
+        val controller = navController ?: return
+        controller.navigate(route) {
+            popUpTo(controller.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     fun navigateAndClear(route: Any, popUpTo: Any) {
         navController?.navigate(route) {
             popUpTo(popUpTo) { inclusive = true }

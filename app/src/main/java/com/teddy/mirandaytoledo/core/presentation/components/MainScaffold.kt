@@ -36,7 +36,7 @@ fun MainScaffold(
                 },
                 onSelectedItem = { destination ->
                     scope.launch { drawerState.close() }
-                    navigator.navigateTo(destination)
+                    navigator.navigateToTopLevel(destination)
                 }
             )
         }

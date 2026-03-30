@@ -7,6 +7,11 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/.name
+/.idea/discord.xml
+/.idea/copilot*.xml
+.kotlin/errors/
+*.log
 .DS_Store
 /build
 /captures
