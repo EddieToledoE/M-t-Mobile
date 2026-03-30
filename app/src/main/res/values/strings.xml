@@ -260,4 +260,27 @@
     <string name="product_types_requires_model_disabled">No model</string>
     <string name="product_types_requires_color_enabled">Color required</string>
     <string name="product_types_requires_color_disabled">No color</string>
+    <string name="price_rules_title">Price Rules</string>
+    <string name="price_rules_supporting_text">Set the base price for each valid combination of product type, finish and size.</string>
+    <string name="price_rules_add">Add price rule</string>
+    <string name="price_rules_error">Unable to load price rules.</string>
+    <string name="price_rules_empty_title">No price rules found</string>
+    <string name="price_rules_empty_message">Tap + to create the first pricing rule.</string>
+    <string name="price_rules_create_dialog_title">New price rule</string>
+    <string name="price_rules_edit_dialog_title">Edit price rule</string>
+    <string name="price_rules_delete_dialog_title">Deactivate price rule</string>
+    <string name="price_rules_delete_dialog_message">Are you sure you want to deactivate the rule for \"%1$s\", \"%2$s\" and \"%3$s\"?</string>
+    <string name="price_rules_no_product_types_available">There are no active product types that require both size and finish yet.</string>
+    <string name="price_rules_product_type_label">Product type</string>
+    <string name="price_rules_finish_label">Finish</string>
+    <string name="price_rules_size_label">Size</string>
+    <string name="price_rules_size_option">%1$s (%2$s)</string>
+    <string name="price_rules_size_group_value">Size group: %1$s</string>
+    <string name="price_rules_price_label">Price</string>
+    <string name="price_rules_price_supporting">Use up to 2 decimal places.</string>
+    <string name="price_rules_card_label">Price Rule</string>
+    <string name="price_rules_price_value">$%1$.2f</string>
+    <string name="price_rules_finish_value">Finish: %1$s</string>
+    <string name="price_rules_size_value">Size: %1$s (%2$s)</string>
+    <string name="price_rules_card_id">ID: %1$d</string>
 </resources>
