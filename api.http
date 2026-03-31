@@ -245,8 +245,8 @@ Content-Type: application/json
   "name": "Paquete",
   "requiresSize": true,
   "requiresFinish": true,
-  "requiresFrameModel": false,
-  "requiresColor": false,
+  "requiresFrameModel": true,
+  "requiresColor": true,
   "allowedSizeGroup": "package",
   "isActive": true
 }

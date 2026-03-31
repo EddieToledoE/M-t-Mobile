@@ -8,6 +8,7 @@ import com.teddy.mirandaytoledo.catalog.di.frameRestrictionModule
 import com.teddy.mirandaytoledo.catalog.di.finishModule
 import com.teddy.mirandaytoledo.catalog.di.priceRuleModule
 import com.teddy.mirandaytoledo.catalog.di.productTypeModule
+import com.teddy.mirandaytoledo.catalog.di.registerModule
 import com.teddy.mirandaytoledo.catalog.di.schoolGroupModule
 import com.teddy.mirandaytoledo.catalog.di.schoolModule
 import com.teddy.mirandaytoledo.catalog.di.sizeModule
@@ -34,7 +35,8 @@ class MirandaytoledoApp : Application() {
                 frameRestrictionModule,
                 sizeModule,
                 productTypeModule,
-                priceRuleModule
+                priceRuleModule,
+                registerModule
             )
         }
     }
