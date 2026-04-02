@@ -9,6 +9,9 @@ object Login
 object Home
 
 @Serializable
+object PendingRegistrations
+
+@Serializable
 object Register
 
 @Serializable

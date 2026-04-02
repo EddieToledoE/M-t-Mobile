@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.teddy.mirandaytoledo.core.navigation.Navigator
@@ -21,6 +22,7 @@ fun MainScaffold(
     currentRoute: Any,
     onLogout: () -> Unit,
     navigator: Navigator = koinInject(),
+    topBarActions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -42,7 +44,12 @@ fun MainScaffold(
         }
     ) {
         Scaffold(
-            topBar = { TopBar(onIconClick = { scope.launch { drawerState.open() } }) },
+            topBar = {
+                TopBar(
+                    onIconClick = { scope.launch { drawerState.open() } },
+                    actions = topBarActions
+                )
+            },
             floatingActionButton = {},
             bottomBar = {},
         ) { paddingValues ->

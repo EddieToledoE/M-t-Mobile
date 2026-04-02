@@ -12,10 +12,41 @@ import com.teddy.mirandaytoledo.core.presentation.SettingsScreen
 import com.teddy.mirandaytoledo.core.presentation.StatusScreen
 import com.teddy.mirandaytoledo.core.presentation.components.MainScaffold
 import com.teddy.mirandaytoledo.home.presentation.HomeScreen
+import com.teddy.mirandaytoledo.home.presentation.HomeViewModel
+import com.teddy.mirandaytoledo.home.presentation.PendingRegistrationsScreen
+import com.teddy.mirandaytoledo.home.presentation.components.HomeTopBarActions
+import org.koin.androidx.compose.koinViewModel
 
 fun NavGraphBuilder.mainGraph(navigator: Navigator, onLogout: () -> Unit) {
     composable<Home> {
-        MainScaffold(currentRoute = Home, onLogout = onLogout) { HomeScreen() }
+        val viewModel = koinViewModel<HomeViewModel>()
+        MainScaffold(
+            currentRoute = Home,
+            onLogout = onLogout,
+            topBarActions = {
+                HomeTopBarActions(
+                    hasPendingRecords = viewModel.uiState.value.pendingRegistrations.isNotEmpty(),
+                    isSyncing = viewModel.uiState.value.isSyncingCatalogs,
+                    onSyncClick = viewModel::syncCatalogs,
+                    onPendingClick = { navigator.navigateTo(PendingRegistrations) }
+                )
+            }
+        ) { HomeScreen(viewModel = viewModel) }
+    }
+    composable<PendingRegistrations> {
+        val viewModel = koinViewModel<HomeViewModel>()
+        MainScaffold(
+            currentRoute = PendingRegistrations,
+            onLogout = onLogout,
+            topBarActions = {
+                HomeTopBarActions(
+                    hasPendingRecords = viewModel.uiState.value.pendingRegistrations.isNotEmpty(),
+                    isSyncing = viewModel.uiState.value.isSyncingCatalogs,
+                    onSyncClick = viewModel::syncCatalogs,
+                    onPendingClick = { }
+                )
+            }
+        ) { PendingRegistrationsScreen(viewModel = viewModel) }
     }
     composable<Register> {
         MainScaffold(currentRoute = Register, onLogout = onLogout) { RegisterScreen() }

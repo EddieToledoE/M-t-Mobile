@@ -42,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,6 +63,10 @@ import com.teddy.mirandaytoledo.catalog.frames.colors.domain.CatalogColor
 import com.teddy.mirandaytoledo.catalog.frames.restrictions.domain.FrameModelFinishColorRelation
 import com.teddy.mirandaytoledo.catalog.frames.restrictions.domain.FrameModelFinishRelation
 import com.teddy.mirandaytoledo.core.domain.util.NetworkError
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -69,11 +75,40 @@ fun FrameRestrictionsScreen(
     viewModel: FrameRestrictionsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showCombinationDialog by remember { mutableStateOf(false) }
     var showColorDialog by remember { mutableStateOf(false) }
     var combinationToDelete by remember { mutableStateOf<FrameModelFinishRelation?>(null) }
     var colorRestrictionToDelete by remember { mutableStateOf<FrameModelFinishColorRelation?>(null) }
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingMutationResult by remember { mutableStateOf(false) }
+
+    LaunchedEffect(
+        uiState.isLoading,
+        uiState.isColorSectionLoading,
+        uiState.error,
+        uiState.combinations,
+        uiState.allowedColors,
+        awaitingMutationResult
+    ) {
+        if (!awaitingMutationResult || uiState.isLoading || uiState.isColorSectionLoading) return@LaunchedEffect
+
+        if (uiState.error != null) {
+            feedback = TimedFeedbackUi(
+                type = TimedFeedbackType.Error,
+                title = context.getString(R.string.feedback_error_title),
+                message = uiState.error!!.toString(context)
+            )
+        } else {
+            feedback = TimedFeedbackUi(
+                type = TimedFeedbackType.Success,
+                title = context.getString(R.string.feedback_success_title),
+                message = context.getString(R.string.feedback_success_message)
+            )
+        }
+        awaitingMutationResult = false
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         if (uiState.isLoading) {
@@ -243,6 +278,7 @@ fun FrameRestrictionsScreen(
             existingCombinations = uiState.combinations,
             onDismiss = { showCombinationDialog = false },
             onConfirm = { frameModelId, finishId ->
+                awaitingMutationResult = true
                 viewModel.createCombination(frameModelId = frameModelId, finishId = finishId)
                 showCombinationDialog = false
             }
@@ -256,6 +292,7 @@ fun FrameRestrictionsScreen(
             selectedCombination = uiState.selectedCombination!!,
             onDismiss = { showColorDialog = false },
             onConfirm = { colorId ->
+                awaitingMutationResult = true
                 viewModel.createColorRestriction(colorId = colorId)
                 showColorDialog = false
             }
@@ -278,6 +315,7 @@ fun FrameRestrictionsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteCombination(
                             frameModelId = combinationToDelete!!.frameModelId,
                             finishId = combinationToDelete!!.finishId
@@ -314,6 +352,7 @@ fun FrameRestrictionsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteColorRestriction(colorId = colorRestrictionToDelete!!.colorId)
                         colorRestrictionToDelete = null
                     }
@@ -331,6 +370,11 @@ fun FrameRestrictionsScreen(
             }
         )
     }
+
+    TimedFeedbackDialog(
+        feedback = feedback,
+        onDismiss = { feedback = null }
+    )
 }
 
 @Composable

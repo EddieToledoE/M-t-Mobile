@@ -42,12 +42,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,6 +59,10 @@ import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.SchoolGroup
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.core.domain.util.NetworkError
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -65,16 +71,45 @@ fun SchoolGroupsScreen(
     viewModel: SchoolGroupsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedGroup by remember { mutableStateOf<SchoolGroup?>(null) }
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingMutationResult by remember { mutableStateOf(false) }
 
     var formGroupCodeInput by remember { mutableStateOf("") }
     var formSelectedSchoolId by remember { mutableStateOf<Int?>(null) }
     var formIsActive by remember { mutableStateOf(true) }
 
     var expandedSchoolDropdown by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState, awaitingMutationResult) {
+        if (!awaitingMutationResult) return@LaunchedEffect
+
+        when (val state = uiState) {
+            is SchoolGroupsUiState.Success -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.feedback_success_title),
+                    message = context.getString(R.string.feedback_success_message)
+                )
+                awaitingMutationResult = false
+            }
+
+            is SchoolGroupsUiState.Error -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = state.error.toString(context)
+                )
+                awaitingMutationResult = false
+            }
+
+            is SchoolGroupsUiState.Loading -> Unit
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -190,12 +225,14 @@ fun SchoolGroupsScreen(
             onDialogDismiss = { showFormDialog = false },
             onConfirm = {
                 if (selectedGroup != null) {
+                    awaitingMutationResult = true
                     viewModel.updateSchoolGroup(
                         id = selectedGroup!!.id,
                         groupCode = formGroupCodeInput,
                         isActive = formIsActive
                     )
                 } else if (formSelectedSchoolId != null) {
+                    awaitingMutationResult = true
                     viewModel.createSchoolGroup(
                         schoolId = formSelectedSchoolId!!,
                         groupCode = formGroupCodeInput
@@ -221,6 +258,7 @@ fun SchoolGroupsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteSchoolGroup(selectedGroup!!.id)
                         showDeleteDialog = false
                         selectedGroup = null
@@ -239,6 +277,11 @@ fun SchoolGroupsScreen(
             }
         )
     }
+
+    TimedFeedbackDialog(
+        feedback = feedback,
+        onDismiss = { feedback = null }
+    )
 }
 
 @Composable

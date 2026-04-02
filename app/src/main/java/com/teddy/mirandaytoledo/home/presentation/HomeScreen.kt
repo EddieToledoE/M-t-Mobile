@@ -1,85 +1,96 @@
 package com.teddy.mirandaytoledo.home.presentation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.teddy.mirandaytoledo.R
-import com.teddy.mirandaytoledo.home.presentation.components.HomeTitleText
-import com.teddy.mirandaytoledo.home.presentation.components.TopBar
-import com.teddy.mirandaytoledo.ui.theme.MirandaytoledoTheme
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
 
-    Column(
+    LaunchedEffect(uiState.event) {
+        when (val event = uiState.event) {
+            HomeEvent.SyncSuccess -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.home_sync_success_title),
+                    message = context.getString(R.string.home_sync_success_message)
+                )
+                viewModel.consumeEvent()
+            }
+
+            is HomeEvent.Error -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = event.error.toString(context)
+                )
+                viewModel.consumeEvent()
+            }
+
+            else -> Unit
+        }
+    }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
-        HomeTitleText(
-            textResId = R.string.home_calendar_title
-        )
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .size(height = 300.dp, width = 0.dp)
-                .background(Color.DarkGray)
-        ) { }
-        HomeTitleText(
-            textResId = R.string.home_work_title
-        )
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .size(height = 300.dp, width = 0.dp)
-                .background(Color.DarkGray)
-        ) { }
-        HomeTitleText(
-            textResId = R.string.home_money_title
-        )
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .size(height = 300.dp, width = 0.dp)
-                .background(Color.DarkGray)
-        ) { }
-        HorizontalDivider(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(8.dp), thickness = 8.dp
-        )
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .size(height = 100.dp, width = 0.dp)
-                .background(Color.DarkGray)
-        ) { }
-    }
-}
+        ElevatedCard {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.home_sync_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.home_topbar_hint_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
 
-@Preview
-@Composable
-fun HomeScreenPrev() {
-    MirandaytoledoTheme {
-        HomeScreen()
+        TimedFeedbackDialog(
+            feedback = feedback,
+            onDismiss = { feedback = null }
+        )
     }
 }

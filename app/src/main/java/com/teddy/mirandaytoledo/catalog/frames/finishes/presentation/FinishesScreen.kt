@@ -34,6 +34,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,12 +42,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.frames.finishes.domain.Finish
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -55,13 +61,42 @@ fun FinishesScreen(
     viewModel: FinishesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedFinish by remember { mutableStateOf<Finish?>(null) }
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingMutationResult by remember { mutableStateOf(false) }
 
     var nameInput by remember { mutableStateOf("") }
     var isActiveInput by remember { mutableStateOf(true) }
+
+    LaunchedEffect(uiState, awaitingMutationResult) {
+        if (!awaitingMutationResult) return@LaunchedEffect
+
+        when (val state = uiState) {
+            is FinishesUiState.Success -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.feedback_success_title),
+                    message = context.getString(R.string.feedback_success_message)
+                )
+                awaitingMutationResult = false
+            }
+
+            is FinishesUiState.Error -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = state.error.toString(context)
+                )
+                awaitingMutationResult = false
+            }
+
+            is FinishesUiState.Loading -> Unit
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -236,12 +271,14 @@ fun FinishesScreen(
 
                         if (isEditing) {
                             val finish = selectedFinish ?: return@TextButton
+                            awaitingMutationResult = true
                             viewModel.updateFinish(
                                 id = finish.id,
                                 name = nameInput,
                                 isActive = isActiveInput
                             )
                         } else {
+                            awaitingMutationResult = true
                             viewModel.createFinish(name = nameInput)
                         }
 
@@ -282,6 +319,7 @@ fun FinishesScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteFinish(id = selectedFinish!!.id)
                         showDeleteDialog = false
                         selectedFinish = null
@@ -300,6 +338,11 @@ fun FinishesScreen(
             }
         )
     }
+
+    TimedFeedbackDialog(
+        feedback = feedback,
+        onDismiss = { feedback = null }
+    )
 }
 
 @Composable

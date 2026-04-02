@@ -42,12 +42,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,6 +59,10 @@ import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.EducationalLevel
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.core.domain.util.NetworkError
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -65,16 +71,45 @@ fun SchoolsScreen(
     viewModel: SchoolsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedSchool by remember { mutableStateOf<School?>(null) }
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingMutationResult by remember { mutableStateOf(false) }
 
     var formNameInput by remember { mutableStateOf("") }
     var formSelectedLevelId by remember { mutableStateOf<Int?>(null) }
     var formIsActive by remember { mutableStateOf(true) }
 
     var expandedLevelDropdown by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState, awaitingMutationResult) {
+        if (!awaitingMutationResult) return@LaunchedEffect
+
+        when (val state = uiState) {
+            is SchoolsUiState.Success -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.feedback_success_title),
+                    message = context.getString(R.string.feedback_success_message)
+                )
+                awaitingMutationResult = false
+            }
+
+            is SchoolsUiState.Error -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = state.error.toString(context)
+                )
+                awaitingMutationResult = false
+            }
+
+            is SchoolsUiState.Loading -> Unit
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -190,12 +225,14 @@ fun SchoolsScreen(
             onDialogDismiss = { showFormDialog = false },
             onConfirm = {
                 if (selectedSchool != null) {
+                    awaitingMutationResult = true
                     viewModel.updateSchool(
                         id = selectedSchool!!.id,
                         name = formNameInput,
                         isActive = formIsActive
                     )
                 } else if (formSelectedLevelId != null) {
+                    awaitingMutationResult = true
                     viewModel.createSchool(
                         educationalLevelId = formSelectedLevelId!!,
                         name = formNameInput
@@ -221,6 +258,7 @@ fun SchoolsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteSchool(selectedSchool!!.id)
                         showDeleteDialog = false
                         selectedSchool = null
@@ -239,6 +277,11 @@ fun SchoolsScreen(
             }
         )
     }
+
+    TimedFeedbackDialog(
+        feedback = feedback,
+        onDismiss = { feedback = null }
+    )
 }
 
 @Composable

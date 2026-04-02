@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -52,6 +53,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.room.common.jvm)
     debugImplementation(libs.bundles.compose.debug)
 
 
@@ -60,6 +62,8 @@ dependencies {
     implementation(libs.bundles.koin)
 
     implementation(libs.bundles.ktor)
+    implementation(libs.bundles.room)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
 

@@ -3,6 +3,8 @@
 package com.teddy.mirandaytoledo.register.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -40,26 +43,37 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.prices.producttypes.domain.ProductType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
 import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
-private val paymentMethods = listOf("Cash", "Card", "Transfer", "Other")
+private val paymentMethods = listOf("Cash", "Transfer")
 
 @Composable
 fun RegisterScreen(
@@ -68,6 +82,8 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingSubmitResult by remember { mutableStateOf(false) }
 
     val availableSchools = uiState.schools.filter {
         uiState.selectedEducationalLevelId == null || it.educationalLevelId == uiState.selectedEducationalLevelId
@@ -97,6 +113,7 @@ fun RegisterScreen(
     val manualUnitPrice = uiState.manualUnitPrice.toDoubleOrNull()
     val estimatedUnitPrice = when {
         selectedProductType == null -> null
+        uiState.useManualUnitPrice && manualUnitPrice != null && manualUnitPrice > 0.0 -> manualUnitPrice
         !selectedProductType.requiresFinish && !selectedProductType.requiresSize -> manualUnitPrice
         else -> uiState.priceRules.firstOrNull {
             it.productTypeId == uiState.selectedProductTypeId &&
@@ -125,12 +142,63 @@ fun RegisterScreen(
         (!selectedProductType.requiresSize || uiState.selectedSizeId != null) &&
         (!selectedProductType.requiresFrameModel || uiState.selectedFrameModelId != null) &&
         (!selectedProductType.requiresColor || uiState.selectedColorId != null) &&
-        estimatedUnitPrice != null &&
-        estimatedUnitPrice > 0.0
+        (
+            if (uiState.useManualUnitPrice) {
+                manualUnitPrice != null && manualUnitPrice > 0.0
+            } else {
+                estimatedUnitPrice != null && estimatedUnitPrice > 0.0
+            }
+        )
 
     val canSubmit = canContinuePersonal &&
         canContinueProduct &&
         (uiState.downPayment.isBlank() || (downPayment != null && downPayment > 0.0))
+
+    LaunchedEffect(
+        uiState.isSubmitting,
+        uiState.submitSuccess,
+        uiState.pendingSaveSuccess,
+        uiState.error,
+        awaitingSubmitResult
+    ) {
+        if (uiState.pendingSaveSuccess) {
+            feedback = TimedFeedbackUi(
+                type = TimedFeedbackType.Success,
+                title = context.getString(R.string.register_pending_saved_title),
+                message = context.getString(R.string.register_pending_saved_message)
+            )
+            awaitingSubmitResult = false
+            return@LaunchedEffect
+        }
+
+        if (!awaitingSubmitResult || uiState.isSubmitting) return@LaunchedEffect
+
+        when {
+            uiState.submitSuccess != null -> {
+                val result = uiState.submitSuccess ?: return@LaunchedEffect
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.register_success_title, result.orderId),
+                    message = context.getString(
+                        R.string.register_success_summary,
+                        result.total,
+                        result.paid,
+                        result.remaining
+                    )
+                )
+                awaitingSubmitResult = false
+            }
+
+            uiState.error != null -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = uiState.error!!.toString(context)
+                )
+                awaitingSubmitResult = false
+            }
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         if (uiState.isLoading) {
@@ -148,50 +216,13 @@ fun RegisterScreen(
                 Stepper(currentStep = uiState.currentStep)
                 RegisterHeader(currentStep = uiState.currentStep)
 
-                uiState.submitSuccess?.let { result ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.large
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.register_success_title, result.orderId),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                Text(
-                                    text = stringResource(
-                                        R.string.register_success_summary,
-                                        result.total,
-                                        result.paid,
-                                        result.remaining
-                                    ),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                        }
-                    }
-                }
-
-                uiState.error?.let { error ->
+                if (uiState.productTypes.isEmpty()) {
                     Surface(
                         color = MaterialTheme.colorScheme.errorContainer,
                         shape = MaterialTheme.shapes.large
                     ) {
                         Text(
-                            text = error.toString(context),
+                            text = stringResource(R.string.register_empty_catalogs_message),
                             modifier = Modifier.padding(16.dp),
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -257,7 +288,10 @@ fun RegisterScreen(
                             when (uiState.currentStep) {
                                 RegisterStep.PERSONAL -> viewModel.nextStep()
                                 RegisterStep.PRODUCT -> viewModel.nextStep()
-                                RegisterStep.PAYMENT -> viewModel.submitRegistration()
+                                RegisterStep.PAYMENT -> {
+                                    awaitingSubmitResult = true
+                                    viewModel.submitRegistration()
+                                }
                             }
                         },
                         enabled = when (uiState.currentStep) {
@@ -285,8 +319,23 @@ fun RegisterScreen(
                         }
                     }
                 }
+
+                if (uiState.currentStep == RegisterStep.PAYMENT) {
+                    TextButton(
+                        onClick = { viewModel.savePendingRegistration() },
+                        enabled = canSubmit && !uiState.isSubmitting,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(R.string.register_save_local_button))
+                    }
+                }
             }
         }
+
+        TimedFeedbackDialog(
+            feedback = feedback,
+            onDismiss = { feedback = null }
+        )
     }
 }
 
@@ -357,6 +406,17 @@ private fun Stepper(currentStep: RegisterStep) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .border(
+                            width = 2.dp,
+                            color = when {
+                                step == currentStep -> MaterialTheme.colorScheme.primary
+                                step.ordinal < currentStep.ordinal -> MaterialTheme.colorScheme.secondary
+                                else -> MaterialTheme.colorScheme.outlineVariant
+                            },
+                            shape = CircleShape
+                        )
                         .background(
                             color = when {
                                 step == currentStep -> MaterialTheme.colorScheme.primary
@@ -364,8 +424,7 @@ private fun Stepper(currentStep: RegisterStep) {
                                 else -> MaterialTheme.colorScheme.surfaceVariant
                             },
                             shape = CircleShape
-                        )
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -527,9 +586,17 @@ private fun RegisterPersonalStep(
     TextInput(
         label = stringResource(R.string.register_tutor_phone_label),
         value = uiState.tutorPhone,
-        onValueChange = { onStateChange { state -> state.copy(tutorPhone = it) } },
+        onValueChange = {
+            val digitsOnly = it.filter(Char::isDigit).take(10)
+            onStateChange { state -> state.copy(tutorPhone = digitsOnly) }
+        },
         keyboardType = KeyboardType.Phone,
-        supportingText = stringResource(R.string.register_phone_supporting)
+        isError = uiState.tutorPhone.isNotBlank() && uiState.tutorPhone.length != 10,
+        supportingText = if (uiState.tutorPhone.isNotBlank() && uiState.tutorPhone.length != 10) {
+            stringResource(R.string.register_phone_exact_digits)
+        } else {
+            stringResource(R.string.register_phone_supporting)
+        }
     )
 }
 
@@ -558,6 +625,7 @@ private fun RegisterProductStep(
                     selectedSizeId = null,
                     selectedFrameModelId = null,
                     selectedColorId = null,
+                    useManualUnitPrice = false,
                     manualUnitPrice = ""
                 )
             }
@@ -645,15 +713,37 @@ private fun RegisterProductStep(
             onSelected = { onStateChange { state -> state.copy(selectedColorId = it.colorId) } }
         )
     }
-    if (selectedProductType != null &&
-        !selectedProductType.requiresFinish &&
-        !selectedProductType.requiresSize
-    ) {
+    if (selectedProductType != null) {
+        SwitchRow(
+            title = stringResource(R.string.register_manual_price_switch_label),
+            subtitle = stringResource(R.string.register_manual_price_switch_supporting),
+            checked = uiState.useManualUnitPrice,
+            onCheckedChange = {
+                onStateChange { state ->
+                    state.copy(
+                        useManualUnitPrice = it,
+                        manualUnitPrice = if (it) state.manualUnitPrice else ""
+                    )
+                }
+            }
+        )
+    }
+    if (selectedProductType != null && uiState.useManualUnitPrice) {
         TextInput(
             label = stringResource(R.string.register_manual_price_label),
             value = uiState.manualUnitPrice,
-            onValueChange = { onStateChange { state -> state.copy(manualUnitPrice = it) } },
-            keyboardType = KeyboardType.Decimal
+            onValueChange = {
+                onStateChange { state ->
+                    state.copy(manualUnitPrice = sanitizeDecimalInput(it))
+                }
+            },
+            keyboardType = KeyboardType.Decimal,
+            isError = uiState.manualUnitPrice.isBlank(),
+            supportingText = if (uiState.manualUnitPrice.isBlank()) {
+                stringResource(R.string.register_validation_required)
+            } else {
+                null
+            }
         )
     }
     TextInput(
@@ -663,7 +753,7 @@ private fun RegisterProductStep(
         singleLine = false,
         supportingText = stringResource(R.string.register_item_notes_supporting)
     )
-    if (productSelectionReadyForPricing && estimatedUnitPrice == null) {
+    if (!uiState.useManualUnitPrice && productSelectionReadyForPricing && estimatedUnitPrice == null) {
         ValidationMessage(
             text = stringResource(R.string.register_validation_missing_price_rule),
             isError = true
@@ -727,16 +817,26 @@ private fun TextInput(
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
+    imeAction: ImeAction = if (singleLine) ImeAction.Next else ImeAction.Default,
     isError: Boolean = false,
     supportingText: String? = null
 ) {
+    val focusManager = LocalFocusManager.current
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         singleLine = singleLine,
         isError = isError,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = imeAction
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+            onDone = { focusManager.clearFocus() }
+        ),
         supportingText = supportingText?.let { support ->
             {
                 Text(text = support)
@@ -898,11 +998,32 @@ private fun ReceiptSummaryCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = stringResource(R.string.register_receipt_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.register_receipt_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.miranda_y_toledo),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Image(
+                    painter = painterResource(R.drawable.logomytcolor),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .height(52.dp)
+                        .width(52.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
             ReceiptLine(
                 label = stringResource(R.string.register_receipt_student),
                 value = listOf(
@@ -993,4 +1114,14 @@ private fun ValidationMessage(
         style = MaterialTheme.typography.bodySmall,
         color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+private fun sanitizeDecimalInput(value: String): String {
+    val filtered = value.filter { it.isDigit() || it == '.' }
+    val firstDotIndex = filtered.indexOf('.')
+    if (firstDotIndex == -1) return filtered
+
+    val integerPart = filtered.substring(0, firstDotIndex + 1)
+    val decimalPart = filtered.substring(firstDotIndex + 1).replace(".", "")
+    return integerPart + decimalPart
 }

@@ -34,6 +34,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,6 +50,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.EducationalLevel
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -56,13 +62,42 @@ fun EducationalLevelScreen(
     viewModel: EducationalLevelsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedLevel by remember { mutableStateOf<EducationalLevel?>(null) }
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingMutationResult by remember { mutableStateOf(false) }
 
     var nameInput by remember { mutableStateOf("") }
     var maxGradeInput by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState, awaitingMutationResult) {
+        if (!awaitingMutationResult) return@LaunchedEffect
+
+        when (val state = uiState) {
+            is EducationalLevelsUiState.Success -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.feedback_success_title),
+                    message = context.getString(R.string.feedback_success_message)
+                )
+                awaitingMutationResult = false
+            }
+
+            is EducationalLevelsUiState.Error -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = state.error.toString(context)
+                )
+                awaitingMutationResult = false
+            }
+
+            is EducationalLevelsUiState.Loading -> Unit
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -210,6 +245,7 @@ fun EducationalLevelScreen(
 
                         if (isEditing) {
                             val level = selectedLevel ?: return@TextButton
+                            awaitingMutationResult = true
                             viewModel.updateLevel(
                                 id = level.id,
                                 name = nameInput,
@@ -217,6 +253,7 @@ fun EducationalLevelScreen(
                                 isActive = level.isActive
                             )
                         } else {
+                            awaitingMutationResult = true
                             viewModel.createLevel(name = nameInput, maxGrade = maxGrade)
                         }
 
@@ -257,6 +294,7 @@ fun EducationalLevelScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteLevel(id = selectedLevel!!.id)
                         showDeleteDialog = false
                         selectedLevel = null
@@ -275,6 +313,11 @@ fun EducationalLevelScreen(
             }
         )
     }
+
+    TimedFeedbackDialog(
+        feedback = feedback,
+        onDismiss = { feedback = null }
+    )
 }
 
 @Composable

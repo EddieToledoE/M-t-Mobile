@@ -13,6 +13,7 @@ import com.teddy.mirandaytoledo.catalog.di.schoolGroupModule
 import com.teddy.mirandaytoledo.catalog.di.schoolModule
 import com.teddy.mirandaytoledo.catalog.di.sizeModule
 import com.teddy.mirandaytoledo.di.appModule
+import com.teddy.mirandaytoledo.home.di.homeModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -26,6 +27,7 @@ class MirandaytoledoApp : Application() {
 
             modules(
                 appModule,
+                homeModule,
                 educationalLevelModule,
                 schoolModule,
                 schoolGroupModule,

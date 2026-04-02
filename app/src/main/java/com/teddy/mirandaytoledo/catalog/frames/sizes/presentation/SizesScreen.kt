@@ -42,6 +42,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,12 +50,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.catalog.frames.sizes.domain.Size
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
+import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 
 private val sizeGroupOptions = listOf("frame", "package")
@@ -65,14 +71,43 @@ fun SizesScreen(
     viewModel: SizesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showFormDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedSize by remember { mutableStateOf<Size?>(null) }
+    var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var awaitingMutationResult by remember { mutableStateOf(false) }
 
     var nameInput by remember { mutableStateOf("") }
     var sizeGroupInput by remember { mutableStateOf(sizeGroupOptions.first()) }
     var isActiveInput by remember { mutableStateOf(true) }
+
+    LaunchedEffect(uiState, awaitingMutationResult) {
+        if (!awaitingMutationResult) return@LaunchedEffect
+
+        when (val state = uiState) {
+            is SizesUiState.Success -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Success,
+                    title = context.getString(R.string.feedback_success_title),
+                    message = context.getString(R.string.feedback_success_message)
+                )
+                awaitingMutationResult = false
+            }
+
+            is SizesUiState.Error -> {
+                feedback = TimedFeedbackUi(
+                    type = TimedFeedbackType.Error,
+                    title = context.getString(R.string.feedback_error_title),
+                    message = state.error.toString(context)
+                )
+                awaitingMutationResult = false
+            }
+
+            is SizesUiState.Loading -> Unit
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -281,6 +316,7 @@ fun SizesScreen(
 
                         if (isEditing) {
                             val size = selectedSize ?: return@TextButton
+                            awaitingMutationResult = true
                             viewModel.updateSize(
                                 id = size.id,
                                 name = nameInput,
@@ -288,6 +324,7 @@ fun SizesScreen(
                                 isActive = isActiveInput
                             )
                         } else {
+                            awaitingMutationResult = true
                             viewModel.createSize(
                                 name = nameInput,
                                 sizeGroup = sizeGroupInput
@@ -327,6 +364,7 @@ fun SizesScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        awaitingMutationResult = true
                         viewModel.deleteSize(id = selectedSize!!.id)
                         showDeleteDialog = false
                         selectedSize = null
@@ -345,6 +383,11 @@ fun SizesScreen(
             }
         )
     }
+
+    TimedFeedbackDialog(
+        feedback = feedback,
+        onDismiss = { feedback = null }
+    )
 }
 
 @Composable

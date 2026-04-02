@@ -11,13 +11,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.teddy.mirandaytoledo.R
 
 @Composable
-fun TopBar(modifier: Modifier = Modifier, onIconClick: () -> Unit) {
+fun TopBar(
+    modifier: Modifier = Modifier,
+    onIconClick: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {}
+) {
     TopAppBar(
         title = { Text(text = stringResource(R.string.top_bar_title)) },
         navigationIcon = {
@@ -28,6 +33,7 @@ fun TopBar(modifier: Modifier = Modifier, onIconClick: () -> Unit) {
                     contentDescription = "Option Menu"
                 )
             }
-        }
+        },
+        actions = actions
     )
 }
