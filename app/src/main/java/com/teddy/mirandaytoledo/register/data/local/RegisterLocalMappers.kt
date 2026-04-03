@@ -153,6 +153,7 @@ fun PriceRuleCacheEntity.toDomain() = PriceRule(
 
 fun PendingRegistrationEntity.toDomain() = PendingRegistration(
     localId = localId,
+    payloadJson = payloadJson,
     studentFullName = studentFullName,
     schoolLabel = schoolLabel,
     productTypeName = productTypeName,

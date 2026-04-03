@@ -10,6 +10,7 @@ import com.teddy.mirandaytoledo.catalog.scholar.educationallevel.domain.Educatio
 import com.teddy.mirandaytoledo.catalog.scholar.groups.domain.SchoolGroup
 import com.teddy.mirandaytoledo.catalog.scholar.schools.domain.School
 import com.teddy.mirandaytoledo.core.domain.util.NetworkError
+import com.teddy.mirandaytoledo.register.domain.OrderShareInfo
 import com.teddy.mirandaytoledo.register.domain.OrderRegistrationResult
 
 enum class RegisterStep {
@@ -23,6 +24,7 @@ data class RegisterUiState(
     val isSubmitting: Boolean = false,
     val error: NetworkError? = null,
     val submitSuccess: OrderRegistrationResult? = null,
+    val shareInfo: OrderShareInfo? = null,
     val pendingSaveSuccess: Boolean = false,
     val currentStep: RegisterStep = RegisterStep.PERSONAL,
     val educationalLevels: List<EducationalLevel> = emptyList(),

@@ -11,6 +11,7 @@ import com.teddy.mirandaytoledo.register.data.dto.CreateRegistrationOrderRequest
 import com.teddy.mirandaytoledo.register.data.dto.CreateRegistrationPaymentRequestDto
 import com.teddy.mirandaytoledo.register.data.dto.CreateRegistrationStudentRequestDto
 import com.teddy.mirandaytoledo.register.data.dto.CreateRegistrationTutorRequestDto
+import com.teddy.mirandaytoledo.register.domain.OrderShareInfoBuilder
 import com.teddy.mirandaytoledo.register.domain.RegisterCatalogBundle
 import com.teddy.mirandaytoledo.register.domain.usecase.ObserveRegisterCatalogBundleUseCase
 import com.teddy.mirandaytoledo.register.domain.usecase.SavePendingRegistrationUseCase
@@ -73,7 +74,7 @@ class RegisterViewModel(
 
     fun updateState(transform: (RegisterUiState) -> RegisterUiState) {
         _uiState.value = transform(_uiState.value)
-            .copy(submitSuccess = null, error = null, pendingSaveSuccess = false)
+            .copy(submitSuccess = null, shareInfo = null, error = null, pendingSaveSuccess = false)
             .sanitize()
     }
 
@@ -86,6 +87,7 @@ class RegisterViewModel(
                 isSubmitting = true,
                 error = null,
                 submitSuccess = null,
+                shareInfo = null,
                 pendingSaveSuccess = false
             )
             submitOrderRegistrationUseCase(request)
@@ -93,6 +95,7 @@ class RegisterViewModel(
                     _uiState.value = RegisterUiState(
                         isLoading = false,
                         submitSuccess = result,
+                        shareInfo = buildShareInfo(state, result),
                         educationalLevels = state.educationalLevels,
                         schools = state.schools,
                         schoolGroups = state.schoolGroups,
@@ -196,6 +199,39 @@ class RegisterViewModel(
         val selectedGroup = state.schoolGroups.firstOrNull { it.id == state.selectedSchoolGroupId }
         return listOfNotNull(selectedLevel?.name, selectedSchool?.name, selectedGroup?.groupCode)
             .joinToString(" • ")
+    }
+
+    private fun buildShareInfo(
+        state: RegisterUiState,
+        result: com.teddy.mirandaytoledo.register.domain.OrderRegistrationResult
+    ) = OrderShareInfoBuilder.build(
+        orderId = result.orderId,
+        phone = state.tutorPhone,
+        studentName = buildStudentFullName(state),
+        schoolLabel = buildSchoolLabel(state),
+        productTypeName = state.productTypes.firstOrNull { it.id == state.selectedProductTypeId }?.name.orEmpty(),
+        options = buildOptions(state),
+        photoReference = state.photoReference.ifBlank { null },
+        total = result.total,
+        paid = result.paid,
+        remaining = result.remaining,
+        notes = listOfNotNull(state.itemNotes.ifBlank { null }, state.orderNotes.ifBlank { null })
+            .joinToString(" • ")
+            .ifBlank { null }
+    )
+
+    private fun buildOptions(state: RegisterUiState): List<String> {
+        val finish = state.finishes.firstOrNull { it.id == state.selectedFinishId }?.name
+        val size = state.sizes.firstOrNull { it.id == state.selectedSizeId }?.name
+        val model = state.frameModelFinishRelations.firstOrNull {
+            it.frameModelId == state.selectedFrameModelId && it.finishId == state.selectedFinishId
+        }?.frameModelName
+        val color = state.frameModelFinishColorRelations.firstOrNull {
+            it.colorId == state.selectedColorId &&
+                it.frameModelId == state.selectedFrameModelId &&
+                it.finishId == state.selectedFinishId
+        }?.colorName
+        return listOfNotNull(finish, size, model, color)
     }
 
     private fun RegisterUiState.sanitize(): RegisterUiState {

@@ -69,6 +69,7 @@ import com.teddy.mirandaytoledo.catalog.prices.producttypes.domain.ProductType
 import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
 import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
 import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.openWhatsAppWithMessage
 import com.teddy.mirandaytoledo.core.presentation.util.toString
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
@@ -84,6 +85,7 @@ fun RegisterScreen(
     val context = LocalContext.current
     var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
     var awaitingSubmitResult by remember { mutableStateOf(false) }
+    val isShareSuccessDialog = feedback?.type == TimedFeedbackType.Success && uiState.submitSuccess != null
 
     val availableSchools = uiState.schools.filter {
         uiState.selectedEducationalLevelId == null || it.educationalLevelId == uiState.selectedEducationalLevelId
@@ -334,7 +336,37 @@ fun RegisterScreen(
 
         TimedFeedbackDialog(
             feedback = feedback,
-            onDismiss = { feedback = null }
+            onDismiss = { feedback = null },
+            autoDismissMillis = if (isShareSuccessDialog) null else 3500L,
+            dismissLabel = if (isShareSuccessDialog) {
+                stringResource(R.string.feedback_close_action)
+            } else {
+                null
+            },
+            confirmLabel = if (isShareSuccessDialog) {
+                stringResource(R.string.feedback_whatsapp_action)
+            } else {
+                null
+            },
+            onConfirm = if (isShareSuccessDialog && uiState.shareInfo != null) {
+                {
+                    val shareInfo = uiState.shareInfo
+                    val opened = openWhatsAppWithMessage(
+                        context = context,
+                        phone = shareInfo?.phone,
+                        message = shareInfo?.message.orEmpty()
+                    )
+                    if (!opened) {
+                        feedback = TimedFeedbackUi(
+                            type = TimedFeedbackType.Error,
+                            title = context.getString(R.string.feedback_error_title),
+                            message = context.getString(R.string.feedback_whatsapp_unavailable)
+                        )
+                    }
+                }
+            } else {
+                null
+            }
         )
     }
 }

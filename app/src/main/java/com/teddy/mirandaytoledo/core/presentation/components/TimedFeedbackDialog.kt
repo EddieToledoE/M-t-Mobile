@@ -11,12 +11,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -42,13 +42,18 @@ data class TimedFeedbackUi(
 fun TimedFeedbackDialog(
     feedback: TimedFeedbackUi?,
     onDismiss: () -> Unit,
-    autoDismissMillis: Long = 3500L
+    autoDismissMillis: Long? = 3500L,
+    dismissLabel: String? = null,
+    onConfirm: (() -> Unit)? = null,
+    confirmLabel: String? = null
 ) {
     if (feedback == null) return
 
-    LaunchedEffect(feedback) {
-        delay(autoDismissMillis)
-        onDismiss()
+    if (autoDismissMillis != null && autoDismissMillis > 0) {
+        LaunchedEffect(feedback) {
+            delay(autoDismissMillis)
+            onDismiss()
+        }
     }
 
     val containerColor = when (feedback.type) {
@@ -91,6 +96,23 @@ fun TimedFeedbackDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = contentColor
                 )
+                if (dismissLabel != null || (confirmLabel != null && onConfirm != null)) {
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        dismissLabel?.let { label ->
+                            TextButton(onClick = onDismiss) {
+                                Text(text = label, color = contentColor)
+                            }
+                        }
+                        if (confirmLabel != null && onConfirm != null) {
+                            Button(onClick = onConfirm) {
+                                Text(text = confirmLabel)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

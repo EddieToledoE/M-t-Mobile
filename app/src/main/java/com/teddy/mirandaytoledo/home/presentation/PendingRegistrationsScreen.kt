@@ -33,6 +33,7 @@ import com.teddy.mirandaytoledo.R
 import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackDialog
 import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackType
 import com.teddy.mirandaytoledo.core.presentation.components.TimedFeedbackUi
+import com.teddy.mirandaytoledo.core.presentation.util.openWhatsAppWithMessage
 import com.teddy.mirandaytoledo.core.presentation.util.toString
 import com.teddy.mirandaytoledo.register.domain.PendingRegistration
 import com.teddy.mirandaytoledo.register.domain.PendingRegistrationStatus
@@ -48,6 +49,9 @@ fun PendingRegistrationsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var feedback by remember { mutableStateOf<TimedFeedbackUi?>(null) }
+    var pendingSharePhone by remember { mutableStateOf<String?>(null) }
+    var pendingShareMessage by remember { mutableStateOf<String?>(null) }
+    val isPendingShareDialog = feedback?.type == TimedFeedbackType.Success && pendingShareMessage != null
 
     LaunchedEffect(uiState.event) {
         when (val event = uiState.event) {
@@ -63,9 +67,11 @@ fun PendingRegistrationsScreen(
             is HomeEvent.PendingSent -> {
                 feedback = TimedFeedbackUi(
                     type = TimedFeedbackType.Success,
-                    title = context.getString(R.string.home_pending_sent_title, event.orderId),
+                    title = context.getString(R.string.home_pending_sent_title, event.shareInfo.orderId),
                     message = context.getString(R.string.home_pending_sent_message)
                 )
+                pendingSharePhone = event.shareInfo.phone
+                pendingShareMessage = event.shareInfo.message
                 viewModel.consumeEvent()
             }
 
@@ -119,7 +125,34 @@ fun PendingRegistrationsScreen(
 
     TimedFeedbackDialog(
         feedback = feedback,
-        onDismiss = { feedback = null }
+        onDismiss = {
+            feedback = null
+            pendingSharePhone = null
+            pendingShareMessage = null
+        },
+        autoDismissMillis = if (isPendingShareDialog) null else 3500L,
+        dismissLabel = if (isPendingShareDialog) stringResource(R.string.feedback_close_action) else null,
+        confirmLabel = if (isPendingShareDialog) stringResource(R.string.feedback_whatsapp_action) else null,
+        onConfirm = if (isPendingShareDialog) {
+            {
+                val opened = openWhatsAppWithMessage(
+                    context = context,
+                    phone = pendingSharePhone,
+                    message = pendingShareMessage.orEmpty()
+                )
+                if (!opened) {
+                    feedback = TimedFeedbackUi(
+                        type = TimedFeedbackType.Error,
+                        title = context.getString(R.string.feedback_error_title),
+                        message = context.getString(R.string.feedback_whatsapp_unavailable)
+                    )
+                    pendingSharePhone = null
+                    pendingShareMessage = null
+                }
+            }
+        } else {
+            null
+        }
     )
 }
 

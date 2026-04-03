@@ -170,6 +170,9 @@
     <string name="feedback_success_message">Your changes were saved successfully.</string>
     <string name="feedback_error_title">Request failed</string>
     <string name="feedback_error_message">We could not complete the request.</string>
+    <string name="feedback_close_action">Close</string>
+    <string name="feedback_whatsapp_action">Send by WhatsApp</string>
+    <string name="feedback_whatsapp_unavailable">No tutor phone is available for WhatsApp.</string>
     <string name="catalog_chooser_school">Scholar Catalog</string>
     <string name="catalog_chooser_frames">Frames Catalog</string>
     <string name="catalog_chooser_prices">Prices Catalog</string>

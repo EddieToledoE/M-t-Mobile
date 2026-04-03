@@ -9,6 +9,7 @@ enum class PendingRegistrationStatus {
 
 data class PendingRegistration(
     val localId: Long,
+    val payloadJson: String,
     val studentFullName: String,
     val schoolLabel: String,
     val productTypeName: String,
